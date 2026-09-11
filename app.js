@@ -7,7 +7,7 @@
 'use strict';
 
 // ==== CONFIG ====
-const APP_VERSION = '0.1.0';
+const APP_VERSION = '0.1.1';
 const STORAGE_KEY = 'autoservis_data';
 const DB_NAME = 'autoservis_photos';
 const DB_STORE = 'photos';
