@@ -1,4 +1,4 @@
-# AutoServis — Build Spec v0.0.1
+# AutoServis — Build Spec v0.1.0
 
 This is the CONTRACT for the build. Follow it exactly. All files go in project root:
 `C:\Users\Korisnik\Documents\CodeProjects\Održavanje automobila`
@@ -10,7 +10,7 @@ This is the CONTRACT for the build. Follow it exactly. All files go in project r
 - `fonts.css` — @font-face for Manrope (weights 400/500/600/700/800)
 - `manifest.json` — PWA manifest
 - `service-worker.js` — offline cache, versioned
-- `version.json` — `{"version": "0.0.1"}`
+- `version.json` — `{"version": "0.1.0"}`
 - `icons/icon-192.png`, `icons/icon-512.png`, `icons/apple-touch-icon.png` (180px)
 - `fonts/Manrope-latin.woff2`, `fonts/Manrope-latin-ext.woff2` — COPY from `C:\Users\Korisnik\Documents\CodeProjects\Wowter\fonts\`
 - `.gitignore` — `.playwright-mcp/`, `.wrangler/`, `$out/`, `*.log`, `docs/temp/`
@@ -43,18 +43,18 @@ Radius hierarchy: inputs/buttons small 6px, cards 10px, overlays 16px top corner
 
 ## 3. Layout
 - Fixed header (52px + safe-top), scrollable main, fixed bottom tab bar (58px + safe-bottom).
-- 5 tabs: **Početna** (home), **Servisi** (services), **Gorivo** (fuel), **Rokovi** (deadlines), **Više** (more).
+- 5 tabs: **Početna** (home), **Dnevnik** (log), **Gorivo** (fuel), **Rokovi** (deadlines), **Više** (more).
 - More view = menu list: Vozila, Troškovi, Dokumenti, Postavke.
 - Overlays: full-screen slide-up panels for add/edit forms + detail views. iOS fix: set explicit height via `visualViewport` (see section 9).
 - Router: `showView(id)` toggles `.view--active`, updates tab active state, re-renders view content.
 
 ## 4. DOM contract (IDs — app.js depends on these EXACTLY)
-Views: `view-home`, `view-services`, `view-fuel`, `view-deadlines`, `view-more`, `view-vehicles`, `view-costs`, `view-documents`, `view-settings`
-Tabs: `tab-home`, `tab-services`, `tab-fuel`, `tab-deadlines`, `tab-more`
+Views: `view-home`, `view-log`, `view-fuel`, `view-deadlines`, `view-more`, `view-vehicles`, `view-costs`, `view-documents`, `view-settings`
+Tabs: `tab-home`, `tab-log`, `tab-fuel`, `tab-deadlines`, `tab-more`
 
 **view-home**: `home-vehicle-row` (vehicle chips), `home-vehicle-card` (name/plate/mileage), `home-next-service` (title/detail/days), `home-deadlines` (chip container), `home-stat-last-service`, `home-stat-consumption`, `home-stat-cost`, `btn-quick-service`, `btn-quick-fuel`
 
-**view-services**: `btn-add-service`, `services-list`; overlay `overlay-service`: `sv-type`, `sv-date`, `sv-mileage`, `sv-cost`, `sv-notes`, `sv-remind-km`, `sv-remind-months`, `sv-save`, `sv-cancel`, `sv-delete`, `overlay-service-title`
+**view-log** (Dnevnik): `btn-add-log`, `log-filter` (type filter chips), `log-list` (timeline); overlay `overlay-log`: `lg-type`, `lg-date`, `lg-km`, `lg-description`, `lg-cost`, `lg-remind-km`, `lg-remind-months`, `lg-save`, `lg-cancel`, `lg-delete`, `overlay-log-title`
 
 **view-fuel**: `btn-add-fuel`, `fuel-stat-avg`, `fuel-stat-total`, `fuel-stat-liters`, `fuel-list`; overlay `overlay-fuel`: `fl-date`, `fl-mileage`, `fl-liters`, `fl-price`, `fl-full`, `fl-save`, `fl-cancel`, `fl-delete`, `overlay-fuel-title`
 
@@ -79,7 +79,7 @@ Tabs: `tab-home`, `tab-services`, `tab-fuel`, `tab-deadlines`, `tab-more`
   settings: { lang: 'hr' },
   activeVehicleId: null,
   vehicles: [{ id, name, make, model, year, plate, vin, mileage, notes, createdAt }],
-  services: [{ id, vehicleId, type, date, mileage, cost, notes, remindKm, remindMonths, createdAt }],
+  log: [{ id, vehicleId, type, date, km, description, cost, remindKm, remindMonths, createdAt }],
   deadlines: [{ id, vehicleId, type, label, expiryDate, cost, notes, createdAt }],
   fuel: [{ id, vehicleId, date, mileage, liters, pricePerLiter, full, createdAt }],
   documents: [{ id, vehicleId, name, type, number, expiryDate, notes, photoId, createdAt }]
@@ -88,13 +88,14 @@ Tabs: `tab-home`, `tab-services`, `tab-fuel`, `tab-deadlines`, `tab-more`
 - `id` = `Date.now().toString(36) + Math.random().toString(36).slice(2,7)`
 - Photos: IndexedDB DB `autoservis_photos`, store `photos`, key = photoId, value = dataURL (JPEG, max 900px, quality 0.8, compressed via canvas).
 - All lists filtered by `activeVehicleId` (except vehicles). If no vehicles exist → show empty-state with CTA to add vehicle.
+- MIGRATION (one-time, on load): if stored data has `services` array → convert each to `log` entry `{type:'service', km: mileage, description: notes, keep date/cost/remindKm/remindMonths}`, then delete `services` key.
 
-## 6. Service types / Deadline types
-Service types: `oil` (Ulje i filteri / Oil & filters), `brakes` (Kočnice / Brakes), `tires` (Gume / Tires), `battery` (Akumulator / Battery), `inspection` (Tehnički pregled / Inspection), `other` (Drugo / Other)
+## 6. Log types / Deadline types
+Log types: `service` (Servis / Service), `repair` (Popravak / Repair), `wash` (Pranje / Wash), `inspection` (Pregled / Inspection), `other` (Ostalo / Other)
 Deadline types: `registration` (Registracija), `insurance` (Osiguranje), `technical` (Tehnički pregled), `license` (Vozačka dozvola / Driving license), `custom` (Drugo / Other — shows `label` field)
 
 ## 7. Reminders & countdown logic
-- Service reminder: if `remindKm` → next due km = `mileage + remindKm`; if `remindMonths` → next due date = `date + remindMonths`. Dashboard shows the earliest upcoming reminder (km or date). Services list shows "due" badge when overdue.
+- Log entry reminder: if `remindKm` → next due km = `km + remindKm`; if `remindMonths` → next due date = `date + remindMonths`. Dashboard shows the earliest upcoming reminder (km or date). Dnevnik list shows "due" badge when overdue.
 - Deadline countdown: days = expiryDate − today. Green >30, amber 7–30, red <7 or expired. Dashboard chips show same colors.
 
 ## 8. Fuel consumption
@@ -103,14 +104,14 @@ Deadline types: `registration` (Registracija), `insurance` (Osiguranje), `techni
 ## 9. PWA + iOS
 - `manifest.json`: name "AutoServis", short_name "AutoServis", start_url "/", display "standalone", background_color "#F5F2ED", theme_color "#D9480F", lang "hr", icons 192+512 (purpose "any").
 - `index.html` head: viewport `width=device-width, initial-scale=1.0, viewport-fit=cover`; `theme-color` #D9480F; `apple-mobile-web-app-capable` yes; `apple-mobile-web-app-status-bar-style` default; `apple-mobile-web-app-title` AutoServis; `apple-touch-icon` /icons/apple-touch-icon.png; manifest link; title "AutoServis".
-- `service-worker.js`: cache name `autoservis-cache-v0.0.1`; precache core files; network-first for navigation, cache-first for assets; on activate delete old caches. Register SW in app.js on load.
+- `service-worker.js`: cache name `autoservis-cache-v0.1.0`; precache core files; network-first for navigation, cache-first for assets; on activate delete old caches. Register SW in app.js on load.
 - iOS visualViewport fix: overlay panels get explicit height from `visualViewport.height` on open + on resize (function `fixOverlayHeight()`).
 - Safe areas: header/tabbar respect `--safe-top`/`--safe-bottom`.
 
 ## 10. Version system
-- `APP_VERSION = '0.0.1'` constant in app.js.
-- `version.json` = `{"version": "0.0.1"}`.
-- index.html: `styles.css?v=0.0.1`, `app.js?v=0.0.1`, `fonts.css?v=0.0.1`.
+- `APP_VERSION = '0.1.0'` constant in app.js.
+- `version.json` = `{"version": "0.1.0"}`.
+- index.html: `styles.css?v=0.1.0`, `app.js?v=0.1.0`, `fonts.css?v=0.1.0`.
 - On load: fetch `version.json` → if version ≠ APP_VERSION → show `update-banner` with reload button.
 - SW cache name includes version → version bump forces cache refresh.
 
@@ -130,3 +131,12 @@ Write and run a PS script that draws: 512×512 (and scaled 192, 180) square, bac
 
 ## 14. Report
 Write `docs/temp/build-report.md`: files created, verification results, any deviations from spec, remaining issues.
+
+## 15. Dnevnik (Log) view — v0.1.0
+- Tab bar: Početna, **Dnevnik**, Gorivo, Rokovi, Više (Dnevnik REPLACES the old Servisi tab).
+- `view-log` shows a chronological timeline (newest first) of ALL events for the active vehicle: log entries + fuel entries (fuel shown with badge "Gorivo", read-only in the diary).
+- Each timeline item: date, km, colored type badge, description, cost. Log entries with reminders show "due" badge when overdue.
+- Filter chips (`log-filter`): Svi / Servis / Popravak / Pranje / Pregled / Ostalo / Gorivo — filter the timeline.
+- Add/edit form (`overlay-log`): type select, date, km, description (textarea), cost, remindKm, remindMonths. Delete button in edit mode.
+- Dashboard "next service" card reads the earliest upcoming reminder from log entries.
+- i18n keys: tabLog, addLog, logTypes.{service,repair,wash,inspection,other}, description, filterAll, due, logEmpty, etc.

@@ -17,7 +17,7 @@ A personal car maintenance tracker PWA for Alen. Track services, deadlines (regi
 8. Clean, non-generic design (warm light theme, burnt-orange automotive accent, Manrope).
 
 ## Features (v0.0.1)
-- **Servisi** — service records (oil, brakes, tires, battery, inspection, other) with date/mileage/cost/notes + reminders (km interval and/or months).
+- **Dnevnik** — the core log system (Japanese style): chronological diary per vehicle with EVERYTHING done — services, repairs, washes, inspections, fuel — each entry with date + km + description + cost. Entries can carry reminders (km interval and/or months).
 - **Rokovi** — registration, insurance, technical inspection, driving license, custom — expiry dates with countdown (green/amber/red).
 - **Gorivo** — fill-ups with liters, price, mileage; computed consumption l/100km; stats.
 - **Troškovi** — aggregated costs (all/year/month), monthly bar chart, category breakdown.

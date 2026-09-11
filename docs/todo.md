@@ -1,12 +1,15 @@
 # AutoServis — Todo
 
-## v0.0.1 (deployed)
-- [x] Build app shell (index.html, manifest, service-worker, version.json, icons, fonts)
-- [x] Build app.js (data model, router, all views, i18n, PWA registration, version check)
-- [x] Build styles.css + fonts.css (design tokens, all views, overlays, tab bar)
-- [x] Verify locally (Playwright 390×844, full flow test, no console errors)
-- [x] Git commit (429606f)
-- [x] Deploy CloudFlare Pages (project: autoservis, production branch main)
-- [x] Verify production (https://autoservis-20i.pages.dev — 200, v0.0.1)
-- [ ] GitHub repo "AutoServis" (user creates) + push
-- [ ] User test on iPhone (Add to Home Screen)
+## v0.1.0 (in progress)
+- [x] Dnevnik log system (replaces Servisi): data model `log` + migration from `services`, timeline view, filter chips, overlay form
+- [x] Version bump 0.1.0 (APP_VERSION, version.json, ?v=, SW cache)
+- [x] Verify locally (Playwright 390×844: migration + full flow, zero console errors)
+- [ ] Git commit + push
+- [ ] CloudFlare: create `autoservisapp` project, deploy, delete old `autoservis` project
+- [ ] Verify production + report
+
+## v0.0.1 (done)
+- [x] Initial build: shell, app.js, styles, PWA, icons, docs
+- [x] Verified locally + production
+- [x] Deployed autoservis-20i.pages.dev (replaced by autoservisapp in v0.1.0)
+- [x] GitHub repo + push

@@ -7,7 +7,7 @@
 'use strict';
 
 // ==== CONFIG ====
-const APP_VERSION = '0.0.1';
+const APP_VERSION = '0.1.0';
 const STORAGE_KEY = 'autoservis_data';
 const DB_NAME = 'autoservis_photos';
 const DB_STORE = 'photos';
@@ -15,7 +15,7 @@ const DB_VERSION = 1;
 const PHOTO_MAX_SIZE = 900;
 const PHOTO_QUALITY = 0.8;
 
-const SERVICE_TYPES = ['oil', 'brakes', 'tires', 'battery', 'inspection', 'other'];
+const LOG_TYPES = ['service', 'repair', 'wash', 'inspection', 'other'];
 const DEADLINE_TYPES = ['registration', 'insurance', 'technical', 'license', 'custom'];
 const DOCUMENT_TYPES = ['registration', 'insurance', 'technical', 'license', 'other'];
 
@@ -24,7 +24,7 @@ const I18N = {
   hr: {
     appName: 'AutoServis',
     tabHome: 'Početna',
-    tabServices: 'Servisi',
+    tabLog: 'Dnevnik',
     tabFuel: 'Gorivo',
     tabDeadlines: 'Rokovi',
     tabMore: 'Više',
@@ -32,6 +32,7 @@ const I18N = {
     menuCosts: 'Troškovi',
     menuDocuments: 'Dokumenti',
     menuSettings: 'Postavke',
+    addLog: 'Dodaj unos',
     addService: 'Dodaj servis',
     addFuel: 'Dodaj gorivo',
     addDeadline: 'Dodaj rok',
@@ -68,14 +69,21 @@ const I18N = {
     type: 'Tip',
     fullTank: 'Pun rezervoar',
     consumption: 'Potrošnja',
-    serviceTypes: {
-      oil: 'Ulje i filteri',
-      brakes: 'Kočnice',
-      tires: 'Gume',
-      battery: 'Akumulator',
-      inspection: 'Tehnički pregled',
-      other: 'Drugo'
+    logTypes: {
+      service: 'Servis',
+      repair: 'Popravak',
+      wash: 'Pranje',
+      inspection: 'Pregled',
+      other: 'Ostalo'
     },
+    description: 'Opis',
+    filterAll: 'Svi',
+    due: 'Rok',
+    logEmpty: 'Nema unosa',
+    newLog: 'Novi unos',
+    editLog: 'Uredi unos',
+    confirmDeleteLog: 'Obrisati ovaj unos?',
+    noLog: 'Nema unosa',
     deadlineTypes: {
       registration: 'Registracija',
       insurance: 'Osiguranje',
@@ -124,17 +132,14 @@ const I18N = {
     remindMonths: 'Podsjetnik (mjeseci)',
     pricePerLiter: 'Cijena po litri',
     totalLiters: 'Ukupno litara',
-    newService: 'Novi servis',
     newFuel: 'Novo gorivo',
     newDeadline: 'Novi rok',
     newVehicle: 'Novo vozilo',
     newDocument: 'Novi dokument',
-    editService: 'Uredi servis',
     editFuel: 'Uredi gorivo',
     editDeadline: 'Uredi rok',
     editVehicle: 'Uredi vozilo',
     editDocument: 'Uredi dokument',
-    confirmDeleteService: 'Obrisati ovaj servis?',
     confirmDeleteFuel: 'Obrisati ovaj unos goriva?',
     confirmDeleteDeadline: 'Obrisati ovaj rok?',
     confirmDeleteVehicle: 'Obrisati ovo vozilo? Svi njegovi podaci bit će obrisani.',
@@ -160,7 +165,6 @@ const I18N = {
     addFirstVehicle: 'Dodaj prvo vozilo',
     noActiveVehicle: 'Nema aktivnog vozila',
     selectVehicle: 'Odaberi vozilo',
-    noServices: 'Nema servisa',
     noFuel: 'Nema unosa goriva',
     noDeadlines: 'Nema rokova',
     noDocuments: 'Nema dokumenata',
@@ -174,7 +178,7 @@ const I18N = {
   en: {
     appName: 'AutoServis',
     tabHome: 'Home',
-    tabServices: 'Services',
+    tabLog: 'Log',
     tabFuel: 'Fuel',
     tabDeadlines: 'Deadlines',
     tabMore: 'More',
@@ -182,6 +186,7 @@ const I18N = {
     menuCosts: 'Costs',
     menuDocuments: 'Documents',
     menuSettings: 'Settings',
+    addLog: 'Add entry',
     addService: 'Add service',
     addFuel: 'Add fuel',
     addDeadline: 'Add deadline',
@@ -218,14 +223,21 @@ const I18N = {
     type: 'Type',
     fullTank: 'Full tank',
     consumption: 'Consumption',
-    serviceTypes: {
-      oil: 'Oil & filters',
-      brakes: 'Brakes',
-      tires: 'Tires',
-      battery: 'Battery',
+    logTypes: {
+      service: 'Service',
+      repair: 'Repair',
+      wash: 'Wash',
       inspection: 'Inspection',
       other: 'Other'
     },
+    description: 'Description',
+    filterAll: 'All',
+    due: 'Due',
+    logEmpty: 'No entries',
+    newLog: 'New entry',
+    editLog: 'Edit entry',
+    confirmDeleteLog: 'Delete this entry?',
+    noLog: 'No entries',
     deadlineTypes: {
       registration: 'Registration',
       insurance: 'Insurance',
@@ -274,17 +286,14 @@ const I18N = {
     remindMonths: 'Reminder (months)',
     pricePerLiter: 'Price per liter',
     totalLiters: 'Total liters',
-    newService: 'New service',
     newFuel: 'New fuel entry',
     newDeadline: 'New deadline',
     newVehicle: 'New vehicle',
     newDocument: 'New document',
-    editService: 'Edit service',
     editFuel: 'Edit fuel entry',
     editDeadline: 'Edit deadline',
     editVehicle: 'Edit vehicle',
     editDocument: 'Edit document',
-    confirmDeleteService: 'Delete this service?',
     confirmDeleteFuel: 'Delete this fuel entry?',
     confirmDeleteDeadline: 'Delete this deadline?',
     confirmDeleteVehicle: 'Delete this vehicle? All of its data will be deleted.',
@@ -310,7 +319,6 @@ const I18N = {
     addFirstVehicle: 'Add your first vehicle',
     noActiveVehicle: 'No active vehicle',
     selectVehicle: 'Select a vehicle',
-    noServices: 'No services',
     noFuel: 'No fuel entries',
     noDeadlines: 'No deadlines',
     noDocuments: 'No documents',
@@ -329,6 +337,7 @@ const state = {
   db: null,            // IndexedDB handle for photos
   currentView: 'home',
   editingId: null,     // id of record being edited in an overlay (null = add mode)
+  logFilter: 'all',    // active Dnevnik timeline filter chip
   pendingPhoto: null,  // dataURL of photo selected in document overlay
   pendingPhotoId: null // photoId that will be stored on the document
 };
@@ -435,19 +444,44 @@ function defaultData() {
     settings: { lang: 'hr' },
     activeVehicleId: null,
     vehicles: [],
-    services: [],
+    log: [],
     deadlines: [],
     fuel: [],
     documents: []
   };
 }
 
+// One-time migration: v0.0.1 stored services as `services`; v0.1.0 uses `log`.
+// Each service becomes a log entry of type 'service' (km = mileage, description = notes).
+function migrateServicesToLog(raw) {
+  if (!raw || !Array.isArray(raw.services) || !raw.services.length) return raw;
+  const log = Array.isArray(raw.log) ? raw.log : [];
+  raw.services.forEach(function (s) {
+    log.push({
+      id: s.id || uid(),
+      vehicleId: s.vehicleId,
+      type: 'service',
+      date: s.date,
+      km: s.mileage != null ? s.mileage : 0,
+      description: s.notes || '',
+      cost: s.cost || 0,
+      remindKm: s.remindKm != null ? s.remindKm : null,
+      remindMonths: s.remindMonths != null ? s.remindMonths : null,
+      createdAt: s.createdAt || new Date().toISOString()
+    });
+  });
+  raw.log = log;
+  delete raw.services;
+  return raw;
+}
+
 function normalizeData(raw) {
   const d = defaultData();
   if (!raw || typeof raw !== 'object') return d;
+  raw = migrateServicesToLog(raw);
   d.settings = { lang: raw.settings && raw.settings.lang === 'en' ? 'en' : 'hr' };
   d.activeVehicleId = typeof raw.activeVehicleId === 'string' ? raw.activeVehicleId : null;
-  ['vehicles', 'services', 'deadlines', 'fuel', 'documents'].forEach(function (k) {
+  ['vehicles', 'log', 'deadlines', 'fuel', 'documents'].forEach(function (k) {
     d[k] = Array.isArray(raw[k]) ? raw[k] : [];
   });
   return d;
@@ -456,7 +490,15 @@ function normalizeData(raw) {
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    state.data = raw ? normalizeData(JSON.parse(raw)) : defaultData();
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const migrated = Array.isArray(parsed.services) && parsed.services.length > 0;
+      state.data = normalizeData(parsed);
+      // Persist the one-time services→log migration so the old key is removed.
+      if (migrated) saveData();
+    } else {
+      state.data = defaultData();
+    }
   } catch (err) {
     state.data = defaultData();
   }
@@ -675,7 +717,7 @@ function checkVersion() {
 // ==== ROUTER ====
 const VIEW_RENDERERS = {
   home: renderHome,
-  services: renderServices,
+  log: renderLog,
   fuel: renderFuel,
   deadlines: renderDeadlines,
   more: renderMore,
@@ -687,7 +729,7 @@ const VIEW_RENDERERS = {
 
 const VIEW_MAP = {
   home: 'view-home',
-  services: 'view-services',
+  log: 'view-log',
   fuel: 'view-fuel',
   deadlines: 'view-deadlines',
   more: 'view-more',
@@ -699,7 +741,7 @@ const VIEW_MAP = {
 
 const TAB_MAP = {
   home: 'tab-home',
-  services: 'tab-services',
+  log: 'tab-log',
   fuel: 'tab-fuel',
   deadlines: 'tab-deadlines',
   more: 'tab-more'
@@ -767,19 +809,19 @@ function deadlineStatus(expiryDate) {
   return { cls: 'ok', label: t('daysLeft', { days: days }) };
 }
 
-function isServiceDue(service, vehicle) {
-  if (service.remindKm && (service.mileage + service.remindKm) <= vehicle.mileage) return true;
-  if (service.remindMonths && daysBetween(todayISO(), addMonths(service.date, service.remindMonths)) <= 0) return true;
+function isLogDue(entry, vehicle) {
+  if (entry.remindKm && (entry.km + entry.remindKm) <= vehicle.mileage) return true;
+  if (entry.remindMonths && daysBetween(todayISO(), addMonths(entry.date, entry.remindMonths)) <= 0) return true;
   return false;
 }
 
-// Earliest upcoming reminder across services of the active vehicle.
+// Earliest upcoming reminder across log entries of the active vehicle.
 // km and date reminders are compared on a normalized scale (1000 km ~ 30 days).
 function getNextService(vehicle) {
   let best = null;
-  filterByVehicle(state.data.services).forEach(function (s) {
+  filterByVehicle(state.data.log).forEach(function (s) {
     if (!s.remindKm && !s.remindMonths) return;
-    const nextKm = s.remindKm ? s.mileage + s.remindKm : null;
+    const nextKm = s.remindKm ? s.km + s.remindKm : null;
     const nextDate = s.remindMonths ? addMonths(s.date, s.remindMonths) : null;
     const kmRemaining = nextKm != null ? nextKm - vehicle.mileage : null;
     const daysRemaining = nextDate != null ? daysBetween(todayISO(), nextDate) : null;
@@ -834,7 +876,7 @@ function computeConsumptions(fuelEntries) {
 // ==== COSTS ====
 function getCostEntries() {
   const entries = [];
-  filterByVehicle(state.data.services).forEach(function (s) {
+  filterByVehicle(state.data.log).forEach(function (s) {
     entries.push({ date: s.date, cost: s.cost || 0, category: 'service', type: s.type });
   });
   filterByVehicle(state.data.fuel).forEach(function (f) {
@@ -894,7 +936,7 @@ function renderCostsBreakdown(entries) {
   entries.forEach(function (e) {
     let label;
     if (e.category === 'fuel') label = t('fuelCost');
-    else if (e.category === 'service') label = t('serviceTypes.' + e.type);
+    else if (e.category === 'service') label = t('logTypes.' + e.type);
     else label = t('deadlineTypes.' + e.type);
     const key = e.category + ':' + e.type;
     const existing = groups.get(key);
@@ -952,7 +994,7 @@ function renderHome() {
     const ns = getNextService(active);
     if (ns) {
       const overdue = ns.value <= 0;
-      const typeLabel = t('serviceTypes.' + ns.service.type);
+      const typeLabel = t('logTypes.' + ns.service.type);
       const title = overdue ? t('overdue') : t('nextService');
       let detail;
       let days;
@@ -987,10 +1029,10 @@ function renderHome() {
     }
   }
 
-  const services = filterByVehicle(state.data.services).slice().sort(function (a, b) {
+  const logEntries = filterByVehicle(state.data.log).slice().sort(function (a, b) {
     return (b.date || '').localeCompare(a.date || '');
   });
-  const lastService = services[0];
+  const lastService = logEntries.find(function (e) { return e.type === 'service'; }) || null;
   if (statLast) statLast.innerHTML = statLabel(t('lastService'), lastService ? fmtDate(lastService.date) : '—');
 
   const consumptions = computeConsumptions(filterByVehicle(state.data.fuel));
@@ -1000,132 +1042,175 @@ function renderHome() {
   if (statCost) statCost.innerHTML = statLabel(t('totalCost'), fmtMoney(sumCosts(getCostEntries())));
 }
 
-// ==== VIEW: SERVICES ====
-function renderServices() {
-  const container = byId('services-list');
+// ==== VIEW: LOG (DNEVNIK) ====
+function renderLog() {
+  const container = byId('log-list');
+  const chips = byId('log-filter');
   if (!container) return;
   if (!state.data.vehicles.length) {
+    if (chips) chips.innerHTML = '';
     container.innerHTML = '<div class="empty-state"><p>' + t('noVehicles') + '</p><button type="button" class="btn" data-action="add-vehicle">' + t('addVehicle') + '</button></div>';
     return;
   }
   const vehicle = getActiveVehicle();
   if (!vehicle) {
+    if (chips) chips.innerHTML = '';
     container.innerHTML = '<div class="empty-state"><p>' + t('noActiveVehicle') + '</p></div>';
     return;
   }
-  const list = filterByVehicle(state.data.services).slice().sort(function (a, b) {
-    return (b.date || '').localeCompare(a.date || '');
+
+  // Filter chips: Svi / Servis / Popravak / Pranje / Pregled / Ostalo / Gorivo
+  if (chips) {
+    const filters = ['all'].concat(LOG_TYPES).concat(['fuel']);
+    chips.innerHTML = filters.map(function (f) {
+      const label = f === 'all' ? t('filterAll') : (f === 'fuel' ? t('fuel') : t('logTypes.' + f));
+      return '<button type="button" class="filter-chip' + (state.logFilter === f ? ' filter-chip--active' : '') + '" data-filter="' + f + '">' + escapeHtml(label) + '</button>';
+    }).join('');
+  }
+
+  // Timeline: log entries + fuel entries (fuel is read-only in the diary)
+  const items = [];
+  if (state.logFilter === 'all' || state.logFilter === 'fuel') {
+    filterByVehicle(state.data.fuel).forEach(function (f) {
+      items.push({ kind: 'fuel', date: f.date, createdAt: f.createdAt || '', fuel: f });
+    });
+  }
+  if (state.logFilter !== 'fuel') {
+    filterByVehicle(state.data.log).forEach(function (e) {
+      if (state.logFilter !== 'all' && e.type !== state.logFilter) return;
+      items.push({ kind: 'log', date: e.date, createdAt: e.createdAt || '', entry: e });
+    });
+  }
+  items.sort(function (a, b) {
+    const d = (b.date || '').localeCompare(a.date || '');
+    if (d !== 0) return d;
+    return (b.createdAt || '').localeCompare(a.createdAt || '');
   });
-  if (!list.length) {
-    container.innerHTML = '<div class="empty">' + t('noServices') + '</div>';
+
+  if (!items.length) {
+    container.innerHTML = '<div class="empty">' + t('logEmpty') + '</div>';
     return;
   }
-  container.innerHTML = list.map(function (s) {
-    const due = isServiceDue(s, vehicle);
+
+  const consumptions = computeConsumptions(filterByVehicle(state.data.fuel));
+  container.innerHTML = items.map(function (it) {
+    if (it.kind === 'fuel') {
+      const f = it.fuel;
+      const cons = consumptions.get(f.id);
+      return '<div class="card log-item log-item--fuel">' +
+        '<div class="log-item-head">' +
+          '<span class="badge badge--fuel">' + t('fuel') + '</span>' +
+          (f.full ? '<span class="badge badge--ok">' + t('fullTank') + '</span>' : '') +
+        '</div>' +
+        '<div class="log-item-meta">' + fmtDate(f.date) + ' · ' + fmtKm(f.mileage) + '</div>' +
+        '<div class="log-item-detail">' + fmtNum(f.liters, 2) + ' L · ' + fmtNum(f.pricePerLiter, 2) + ' ' + t('currency') + '/L · ' + fmtMoney((f.liters || 0) * (f.pricePerLiter || 0)) + '</div>' +
+        (cons != null ? '<div class="log-item-cons">' + t('consumption') + ': ' + cons.toFixed(1) + ' ' + t('lPer100') + '</div>' : '') +
+      '</div>';
+    }
+    const e = it.entry;
+    const due = isLogDue(e, vehicle);
     let reminder = '';
-    if (s.remindKm) {
-      const remaining = (s.mileage + s.remindKm) - vehicle.mileage;
-      reminder = '<div class="sv-item-reminder">' + t('dueKm', { km: fmtNum(Math.max(0, remaining), 0) }) + '</div>';
+    if (e.remindKm) {
+      const remaining = (e.km + e.remindKm) - vehicle.mileage;
+      reminder += '<div class="log-item-reminder">' + t('dueKm', { km: fmtNum(Math.max(0, remaining), 0) }) + '</div>';
     }
-    if (s.remindMonths) {
-      reminder += '<div class="sv-item-reminder">' + t('dueDate', { date: fmtDate(addMonths(s.date, s.remindMonths)) }) + '</div>';
+    if (e.remindMonths) {
+      reminder += '<div class="log-item-reminder">' + t('dueDate', { date: fmtDate(addMonths(e.date, e.remindMonths)) }) + '</div>';
     }
-    return '<div class="card sv-item">' +
-      '<div class="sv-item-head">' +
-        '<span class="sv-item-type">' + escapeHtml(t('serviceTypes.' + s.type)) + '</span>' +
-        (due ? '<span class="badge badge--due">' + t('overdue') + '</span>' : '') +
+    return '<div class="card log-item log-item--' + e.type + '">' +
+      '<div class="log-item-head">' +
+        '<span class="badge badge--' + e.type + '">' + escapeHtml(t('logTypes.' + e.type)) + '</span>' +
+        (due ? '<span class="badge badge--due">' + t('due') + '</span>' : '') +
       '</div>' +
-      '<div class="sv-item-meta">' + fmtDate(s.date) + ' · ' + fmtKm(s.mileage) + '</div>' +
-      (s.cost ? '<div class="sv-item-cost">' + fmtMoney(s.cost) + '</div>' : '') +
-      (s.notes ? '<div class="sv-item-notes">' + escapeHtml(s.notes) + '</div>' : '') +
+      '<div class="log-item-meta">' + fmtDate(e.date) + ' · ' + fmtKm(e.km) + '</div>' +
+      (e.description ? '<div class="log-item-desc">' + escapeHtml(e.description) + '</div>' : '') +
+      (e.cost ? '<div class="log-item-cost">' + fmtMoney(e.cost) + '</div>' : '') +
       reminder +
       '<div class="item-actions">' +
-        '<button type="button" class="btn btn--ghost" data-action="edit" data-id="' + s.id + '">' + t('edit') + '</button>' +
-        '<button type="button" class="btn btn--ghost btn--danger-text" data-action="delete" data-id="' + s.id + '">' + t('delete') + '</button>' +
+        '<button type="button" class="btn btn--ghost" data-action="edit" data-id="' + e.id + '">' + t('edit') + '</button>' +
+        '<button type="button" class="btn btn--ghost btn--danger-text" data-action="delete" data-id="' + e.id + '">' + t('delete') + '</button>' +
       '</div>' +
     '</div>';
   }).join('');
 }
 
-function openServiceOverlay(id) {
+function openLogOverlay(id) {
   const vehicle = requireActiveVehicle();
   if (!vehicle) return;
   state.editingId = id || null;
-  const title = byId('overlay-service-title');
-  const del = byId('sv-delete');
-  const typeSel = byId('sv-type');
-  const dateIn = byId('sv-date');
-  const mileageIn = byId('sv-mileage');
-  const costIn = byId('sv-cost');
-  const notesIn = byId('sv-notes');
-  const remindKmIn = byId('sv-remind-km');
-  const remindMonthsIn = byId('sv-remind-months');
-  if (title) title.textContent = id ? t('editService') : t('newService');
+  const title = byId('overlay-log-title');
+  const del = byId('lg-delete');
+  const typeSel = byId('lg-type');
+  if (title) title.textContent = id ? t('editLog') : t('newLog');
   if (del) del.style.display = id ? '' : 'none';
-  if (typeSel) populateSelect(typeSel, SERVICE_TYPES, 'serviceTypes', null);
+  if (typeSel) populateSelect(typeSel, LOG_TYPES, 'logTypes', null);
   if (id) {
-    const s = state.data.services.find(function (x) { return x.id === id; });
-    if (!s) return;
-    if (typeSel) typeSel.value = s.type;
-    if (dateIn) dateIn.value = s.date || '';
-    if (mileageIn) mileageIn.value = s.mileage != null ? s.mileage : '';
-    if (costIn) costIn.value = s.cost != null ? s.cost : '';
-    if (notesIn) notesIn.value = s.notes || '';
-    if (remindKmIn) remindKmIn.value = s.remindKm != null ? s.remindKm : '';
-    if (remindMonthsIn) remindMonthsIn.value = s.remindMonths != null ? s.remindMonths : '';
+    const e = state.data.log.find(function (x) { return x.id === id; });
+    if (!e) return;
+    if (typeSel) typeSel.value = e.type;
+    if (byId('lg-date')) byId('lg-date').value = e.date || '';
+    if (byId('lg-km')) byId('lg-km').value = e.km != null ? e.km : '';
+    if (byId('lg-description')) byId('lg-description').value = e.description || '';
+    if (byId('lg-cost')) byId('lg-cost').value = e.cost != null ? e.cost : '';
+    if (byId('lg-remind-km')) byId('lg-remind-km').value = e.remindKm != null ? e.remindKm : '';
+    if (byId('lg-remind-months')) byId('lg-remind-months').value = e.remindMonths != null ? e.remindMonths : '';
   } else {
-    if (typeSel) typeSel.value = SERVICE_TYPES[0];
-    if (dateIn) dateIn.value = todayISO();
-    if (mileageIn) mileageIn.value = vehicle.mileage != null ? vehicle.mileage : '';
-    if (costIn) costIn.value = '';
-    if (notesIn) notesIn.value = '';
-    if (remindKmIn) remindKmIn.value = '';
-    if (remindMonthsIn) remindMonthsIn.value = '';
+    if (typeSel) typeSel.value = LOG_TYPES[0];
+    if (byId('lg-date')) byId('lg-date').value = todayISO();
+    if (byId('lg-km')) byId('lg-km').value = vehicle.mileage != null ? vehicle.mileage : '';
+    if (byId('lg-description')) byId('lg-description').value = '';
+    if (byId('lg-cost')) byId('lg-cost').value = '';
+    if (byId('lg-remind-km')) byId('lg-remind-km').value = '';
+    if (byId('lg-remind-months')) byId('lg-remind-months').value = '';
   }
-  openOverlay('overlay-service');
+  openOverlay('overlay-log');
 }
 
-function saveService() {
+function saveLog() {
   const vehicle = requireActiveVehicle();
   if (!vehicle) return;
-  const type = byId('sv-type') ? byId('sv-type').value : SERVICE_TYPES[0];
-  const date = byId('sv-date') ? byId('sv-date').value : todayISO();
-  const mileage = byId('sv-mileage') ? parseNum(byId('sv-mileage').value) : 0;
-  const cost = byId('sv-cost') ? parseNum(byId('sv-cost').value) : 0;
-  const notes = byId('sv-notes') ? byId('sv-notes').value.trim() : '';
-  const remindKm = byId('sv-remind-km') ? parseNum(byId('sv-remind-km').value) : 0;
-  const remindMonths = byId('sv-remind-months') ? parseNum(byId('sv-remind-months').value) : 0;
-  const existing = state.editingId ? state.data.services.find(function (x) { return x.id === state.editingId; }) : null;
+  const date = byId('lg-date') ? byId('lg-date').value : '';
+  if (!date) {
+    toast(t('dateRequired'));
+    return;
+  }
+  const type = byId('lg-type') ? byId('lg-type').value : LOG_TYPES[0];
+  const km = byId('lg-km') ? parseNum(byId('lg-km').value) : 0;
+  const description = byId('lg-description') ? byId('lg-description').value.trim() : '';
+  const cost = byId('lg-cost') ? parseNum(byId('lg-cost').value) : 0;
+  const remindKm = byId('lg-remind-km') ? parseNum(byId('lg-remind-km').value) : 0;
+  const remindMonths = byId('lg-remind-months') ? parseNum(byId('lg-remind-months').value) : 0;
+  const existing = state.editingId ? state.data.log.find(function (x) { return x.id === state.editingId; }) : null;
   const rec = {
     id: state.editingId || uid(),
     vehicleId: vehicle.id,
     type: type,
-    date: date || todayISO(),
-    mileage: mileage,
+    date: date,
+    km: km,
+    description: description,
     cost: cost,
-    notes: notes,
     remindKm: remindKm > 0 ? remindKm : null,
     remindMonths: remindMonths > 0 ? remindMonths : null,
     createdAt: existing ? existing.createdAt : new Date().toISOString()
   };
   if (existing) {
-    state.data.services = state.data.services.map(function (x) { return x.id === rec.id ? rec : x; });
+    state.data.log = state.data.log.map(function (x) { return x.id === rec.id ? rec : x; });
   } else {
-    state.data.services.push(rec);
+    state.data.log.push(rec);
   }
   saveData();
-  closeOverlay('overlay-service');
+  closeOverlay('overlay-log');
   renderCurrentView();
   toast(t('saved'));
 }
 
-async function deleteService(id) {
+async function deleteLog(id) {
   const recId = id || state.editingId;
-  const ok = await confirmDialog({ title: t('delete'), text: t('confirmDeleteService') });
+  const ok = await confirmDialog({ title: t('delete'), text: t('confirmDeleteLog') });
   if (!ok) return;
-  state.data.services = state.data.services.filter(function (x) { return x.id !== recId; });
+  state.data.log = state.data.log.filter(function (x) { return x.id !== recId; });
   saveData();
-  closeOverlay('overlay-service');
+  closeOverlay('overlay-log');
   renderCurrentView();
   toast(t('deleted'));
 }
@@ -1471,7 +1556,7 @@ async function deleteVehicle(id) {
     .filter(function (d) { return d.vehicleId === recId && d.photoId; })
     .map(function (d) { return d.photoId; });
   state.data.vehicles = state.data.vehicles.filter(function (v) { return v.id !== recId; });
-  state.data.services = state.data.services.filter(function (x) { return x.vehicleId !== recId; });
+  state.data.log = state.data.log.filter(function (x) { return x.vehicleId !== recId; });
   state.data.fuel = state.data.fuel.filter(function (x) { return x.vehicleId !== recId; });
   state.data.deadlines = state.data.deadlines.filter(function (x) { return x.vehicleId !== recId; });
   state.data.documents = state.data.documents.filter(function (x) { return x.vehicleId !== recId; });
@@ -1820,9 +1905,9 @@ function delegateList(containerId, handler) {
   });
 }
 
-function onServiceAction(action, id) {
-  if (action === 'edit') openServiceOverlay(id);
-  else if (action === 'delete') deleteService(id);
+function onLogAction(action, id) {
+  if (action === 'edit') openLogOverlay(id);
+  else if (action === 'delete') deleteLog(id);
 }
 
 function onFuelAction(action, id) {
@@ -1857,7 +1942,7 @@ function onHomeChipAction(action, id) {
 
 function wireEvents() {
   // Tabs
-  ['home', 'services', 'fuel', 'deadlines', 'more'].forEach(function (v) {
+  ['home', 'log', 'fuel', 'deadlines', 'more'].forEach(function (v) {
     const tab = byId('tab-' + v);
     if (tab) tab.addEventListener('click', function () { showView(v); });
   });
@@ -1873,8 +1958,8 @@ function wireEvents() {
   if (menuSettings) menuSettings.addEventListener('click', function () { showView('settings'); });
 
   // Add buttons
-  const btnAddService = byId('btn-add-service');
-  if (btnAddService) btnAddService.addEventListener('click', function () { openServiceOverlay(); });
+  const btnAddLog = byId('btn-add-log');
+  if (btnAddLog) btnAddLog.addEventListener('click', function () { openLogOverlay(); });
   const btnAddFuel = byId('btn-add-fuel');
   if (btnAddFuel) btnAddFuel.addEventListener('click', function () { openFuelOverlay(); });
   const btnAddDeadline = byId('btn-add-deadline');
@@ -1884,7 +1969,7 @@ function wireEvents() {
   const btnAddDocument = byId('btn-add-document');
   if (btnAddDocument) btnAddDocument.addEventListener('click', function () { openDocumentOverlay(); });
   const btnQuickService = byId('btn-quick-service');
-  if (btnQuickService) btnQuickService.addEventListener('click', function () { openServiceOverlay(); });
+  if (btnQuickService) btnQuickService.addEventListener('click', function () { openLogOverlay(); });
   const btnQuickFuel = byId('btn-quick-fuel');
   if (btnQuickFuel) btnQuickFuel.addEventListener('click', function () { openFuelOverlay(); });
 
@@ -1894,13 +1979,13 @@ function wireEvents() {
     if (btn) openVehicleOverlay();
   });
 
-  // Service overlay
-  const svSave = byId('sv-save');
-  if (svSave) svSave.addEventListener('click', saveService);
-  const svCancel = byId('sv-cancel');
-  if (svCancel) svCancel.addEventListener('click', function () { closeOverlay('overlay-service'); });
-  const svDelete = byId('sv-delete');
-  if (svDelete) svDelete.addEventListener('click', function () { deleteService(); });
+  // Log overlay
+  const lgSave = byId('lg-save');
+  if (lgSave) lgSave.addEventListener('click', saveLog);
+  const lgCancel = byId('lg-cancel');
+  if (lgCancel) lgCancel.addEventListener('click', function () { closeOverlay('overlay-log'); });
+  const lgDelete = byId('lg-delete');
+  if (lgDelete) lgDelete.addEventListener('click', function () { deleteLog(); });
 
   // Fuel overlay
   const flSave = byId('fl-save');
@@ -1975,12 +2060,23 @@ function wireEvents() {
   if (btnReset) btnReset.addEventListener('click', resetData);
 
   // List delegation
-  delegateList('services-list', onServiceAction);
+  delegateList('log-list', onLogAction);
   delegateList('fuel-list', onFuelAction);
   delegateList('deadlines-list', onDeadlineAction);
   delegateList('vehicles-list', onVehicleAction);
   delegateList('documents-list', onDocumentAction);
   delegateList('home-vehicle-row', onHomeChipAction);
+
+  // Log filter chips
+  const logFilter = byId('log-filter');
+  if (logFilter) {
+    logFilter.addEventListener('click', function (e) {
+      const chip = e.target.closest('[data-filter]');
+      if (!chip || !logFilter.contains(chip)) return;
+      state.logFilter = chip.getAttribute('data-filter');
+      renderLog();
+    });
+  }
 
   // Overlay backdrop close
   document.querySelectorAll('.overlay').forEach(function (ov) {

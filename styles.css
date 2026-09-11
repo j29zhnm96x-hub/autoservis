@@ -313,6 +313,13 @@ img { max-width: 100%; display: block; }
 .badge--ok { background: rgba(43,138,62,.12); color: var(--ok); }
 .badge--neutral { background: var(--surface-2); color: var(--text-2); }
 
+.badge--service { background: rgba(217,72,15,.12); color: var(--accent); }
+.badge--repair { background: rgba(201,42,42,.12); color: var(--danger); }
+.badge--wash { background: rgba(43,138,62,.12); color: var(--ok); }
+.badge--inspection { background: rgba(245,159,0,.16); color: #9A6700; }
+.badge--other { background: var(--surface-2); color: var(--text-2); }
+.badge--fuel { background: rgba(31,29,26,.08); color: var(--text); }
+
 .item-actions {
   display: flex;
   gap: 8px;
@@ -454,34 +461,87 @@ img { max-width: 100%; display: block; }
 .quick-actions .btn { min-width: 0; }
 
 /* ------------------------------------------------------------
-   10. Service items
+   9b. Filter chips (Dnevnik timeline)
    ------------------------------------------------------------ */
-.sv-item-head {
+.filter-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 12px;
+  scrollbar-width: none;
+}
+.filter-chips::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.filter-chip--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ------------------------------------------------------------
+   10. Log timeline (Dnevnik)
+   ------------------------------------------------------------ */
+.log-item { border-left: 3px solid var(--border); }
+
+.log-item--service { border-left-color: var(--accent); }
+.log-item--repair { border-left-color: var(--danger); }
+.log-item--wash { border-left-color: var(--ok); }
+.log-item--inspection { border-left-color: var(--accent-2); }
+.log-item--other { border-left-color: var(--text-3); }
+.log-item--fuel { border-left-color: var(--text); }
+
+.log-item-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
 }
 
-.sv-item-type { font-size: 16px; font-weight: 600; }
-
-.sv-item-meta {
+.log-item-meta {
   font-size: 13px;
   color: var(--text-2);
   margin-top: 4px;
   line-height: 1.45;
 }
 
-.sv-item-cost { font-size: 14px; font-weight: 700; color: var(--text); margin-top: 4px; }
-
-.sv-item-notes {
+.log-item-desc {
   font-size: 13px;
   color: var(--text-2);
   margin-top: 6px;
   line-height: 1.45;
 }
 
-.sv-item-reminder {
+.log-item-cost { font-size: 14px; font-weight: 700; color: var(--text); margin-top: 4px; }
+
+.log-item-detail {
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.log-item-cons {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-top: 4px;
+}
+
+.log-item-reminder {
   font-size: 13px;
   font-weight: 600;
   color: var(--warn);

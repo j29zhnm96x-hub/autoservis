@@ -12,9 +12,9 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.json">
   <title>AutoServis</title>
-  <link rel="stylesheet" href="/styles.css?v=0.0.1">
-  <link rel="stylesheet" href="/fonts.css?v=0.0.1">
-  <script src="/app.js?v=0.0.1" defer></script>
+  <link rel="stylesheet" href="/styles.css?v=0.1.0">
+  <link rel="stylesheet" href="/fonts.css?v=0.1.0">
+  <script src="/app.js?v=0.1.0" defer></script>
 </head>
 <body>
   <header class="app-header">
@@ -40,13 +40,14 @@
       </div>
     </section>
 
-    <!-- ============ VIEW: SERVICES ============ -->
-    <section class="view" id="view-services">
+    <!-- ============ VIEW: LOG (DNEVNIK) ============ -->
+    <section class="view" id="view-log">
       <div class="view-header">
-        <button class="btn btn--primary" id="btn-add-service" data-i18n="addService">Dodaj servis</button>
+        <button class="btn btn--primary" id="btn-add-log" data-i18n="addLog">Dodaj unos</button>
       </div>
-      <div class="list" id="services-list">
-        <div class="empty-state" data-i18n="noData">Nema podataka</div>
+      <div class="filter-chips" id="log-filter"></div>
+      <div class="list" id="log-list">
+        <div class="empty-state" data-i18n="logEmpty">Nema unosa</div>
       </div>
     </section>
 
@@ -83,7 +84,7 @@
         <button class="menu__item" id="menu-documents" data-i18n="menuDocuments">Dokumenti</button>
         <button class="menu__item" id="menu-settings" data-i18n="menuSettings">Postavke</button>
       </nav>
-      <div class="more-version" id="more-version">v0.0.1</div>
+      <div class="more-version" id="more-version">v0.1.0</div>
     </section>
 
     <!-- ============ VIEW: VEHICLES ============ -->
@@ -138,7 +139,7 @@
         <h2 class="settings-group__title" data-i18n="resetData">Reset podataka</h2>
         <button class="btn btn--danger" id="btn-reset" data-i18n="resetData">Reset podataka</button>
       </div>
-      <div class="settings-version" id="set-version">v0.0.1</div>
+      <div class="settings-version" id="set-version">v0.1.0</div>
     </section>
 
   </main>
@@ -146,60 +147,59 @@
   <!-- ============ TAB BAR ============ -->
   <nav class="tab-bar">
     <button class="tab tab--active" id="tab-home" data-i18n="tabHome">Početna</button>
-    <button class="tab" id="tab-services" data-i18n="tabServices">Servisi</button>
+    <button class="tab" id="tab-log" data-i18n="tabLog">Dnevnik</button>
     <button class="tab" id="tab-fuel" data-i18n="tabFuel">Gorivo</button>
     <button class="tab" id="tab-deadlines" data-i18n="tabDeadlines">Rokovi</button>
     <button class="tab" id="tab-more" data-i18n="tabMore">Više</button>
   </nav>
 
-  <!-- ============ OVERLAY: SERVICE ============ -->
-  <div class="overlay" id="overlay-service" hidden>
+  <!-- ============ OVERLAY: LOG (DNEVNIK) ============ -->
+  <div class="overlay" id="overlay-log" hidden>
     <div class="overlay__panel">
       <div class="overlay__header">
-        <h2 class="overlay__title" id="overlay-service-title"></h2>
+        <h2 class="overlay__title" id="overlay-log-title"></h2>
         <button class="overlay__close" type="button" aria-label="Close">&times;</button>
       </div>
       <div class="overlay__body">
         <label class="field">
           <span class="field__label" data-i18n="type">Tip</span>
-          <select id="sv-type">
-            <option value="oil" data-i18n="serviceTypes.oil">Ulje i filteri</option>
-            <option value="brakes" data-i18n="serviceTypes.brakes">Kočnice</option>
-            <option value="tires" data-i18n="serviceTypes.tires">Gume</option>
-            <option value="battery" data-i18n="serviceTypes.battery">Akumulator</option>
-            <option value="inspection" data-i18n="serviceTypes.inspection">Tehnički pregled</option>
-            <option value="other" data-i18n="serviceTypes.other">Drugo</option>
+          <select id="lg-type">
+            <option value="service" data-i18n="logTypes.service">Servis</option>
+            <option value="repair" data-i18n="logTypes.repair">Popravak</option>
+            <option value="wash" data-i18n="logTypes.wash">Pranje</option>
+            <option value="inspection" data-i18n="logTypes.inspection">Pregled</option>
+            <option value="other" data-i18n="logTypes.other">Ostalo</option>
           </select>
         </label>
         <label class="field">
           <span class="field__label" data-i18n="date">Datum</span>
-          <input type="date" id="sv-date">
+          <input type="date" id="lg-date">
         </label>
         <label class="field">
           <span class="field__label" data-i18n="mileage">Kilometraža</span>
-          <input type="number" id="sv-mileage" inputmode="numeric" min="0" step="1">
+          <input type="number" id="lg-km" inputmode="numeric" min="0" step="1">
+        </label>
+        <label class="field">
+          <span class="field__label" data-i18n="description">Opis</span>
+          <textarea id="lg-description" rows="2"></textarea>
         </label>
         <label class="field">
           <span class="field__label" data-i18n="cost">Trošak</span>
-          <input type="number" id="sv-cost" inputmode="decimal" min="0" step="0.01">
-        </label>
-        <label class="field">
-          <span class="field__label" data-i18n="notes">Bilješke</span>
-          <textarea id="sv-notes" rows="2"></textarea>
+          <input type="number" id="lg-cost" inputmode="decimal" min="0" step="0.01">
         </label>
         <label class="field">
           <span class="field__label" data-i18n="remindKm">Podsjeti nakon km</span>
-          <input type="number" id="sv-remind-km" inputmode="numeric" min="0" step="1">
+          <input type="number" id="lg-remind-km" inputmode="numeric" min="0" step="1">
         </label>
         <label class="field">
           <span class="field__label" data-i18n="remindMonths">Podsjeti nakon mjeseci</span>
-          <input type="number" id="sv-remind-months" inputmode="numeric" min="0" step="1">
+          <input type="number" id="lg-remind-months" inputmode="numeric" min="0" step="1">
         </label>
       </div>
       <div class="overlay__footer">
-        <button class="btn btn--danger" id="sv-delete" data-i18n="delete">Obriši</button>
-        <button class="btn" id="sv-cancel" data-i18n="cancel">Odustani</button>
-        <button class="btn btn--primary" id="sv-save" data-i18n="save">Spremi</button>
+        <button class="btn btn--danger" id="lg-delete" data-i18n="delete">Obriši</button>
+        <button class="btn" id="lg-cancel" data-i18n="cancel">Odustani</button>
+        <button class="btn btn--primary" id="lg-save" data-i18n="save">Spremi</button>
       </div>
     </div>
   </div>
