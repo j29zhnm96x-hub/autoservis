@@ -29,6 +29,23 @@
   --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
 }
 
+/* Dark theme — warm dark palette (NOT pure black). Applied via data-theme on <html>. */
+[data-theme="dark"] {
+  --bg: #1A1815;
+  --surface: #24211C;
+  --surface-2: #2E2A24;
+  --border: #3A352E;
+  --text: #EDE8E0;
+  --text-2: #B5ADA1;
+  --text-3: #8A8378;
+  --accent: #F0661F;
+  --accent-2: #F5A623;
+  --ok: #4CAF6D;
+  --warn: #F0661F;
+  --danger: #E5484D;
+  --shadow: 0 1px 3px rgba(0,0,0,.4);
+}
+
 /* ------------------------------------------------------------
    2. Reset & base
    ------------------------------------------------------------ */
@@ -44,6 +61,9 @@ body {
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
+  touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body.body--overlay { overflow: hidden; }
@@ -54,9 +74,41 @@ button { font-family: inherit; -webkit-tap-highlight-color: transparent; touch-a
 input, select, textarea { font-family: inherit; }
 img { max-width: 100%; display: block; }
 
+/* No text selection on interactive elements + kill double-tap zoom.
+   Covers buttons, tabs, chips, menu rows, clickable list rows, stats,
+   quick actions, overlay close, photo rows, check fields. */
+.btn,
+.tab,
+.chip,
+.filter-chip,
+.menu__item,
+.log-item,
+.stat,
+.quick-action,
+.overlay__close,
+.dc-item-photo,
+.dc-preview-remove,
+.field--check,
+.photo-viewer__close,
+.update-banner__reload,
+.confirm-dialog .btn,
+.settings-row .btn {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
 ::selection { background: rgba(217,72,15,.18); }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Dark-mode fixes for elements with hardcoded light-theme colors. */
+[data-theme="dark"] .badge--inspection { color: var(--accent-2); }
+[data-theme="dark"] .badge--fuel { background: rgba(255,255,255,.08); }
+[data-theme="dark"] .field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B5ADA1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+}
 
 /* ------------------------------------------------------------
    3. App shell — fixed header, scrollable main, fixed tab bar
@@ -773,6 +825,15 @@ img { max-width: 100%; display: block; }
 }
 
 .settings-row:last-child { border-bottom: none; }
+
+.settings-row--segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.settings-row--segmented .btn { min-width: 0; padding: 8px 6px; font-size: 14px; }
 
 .settings-version {
   text-align: center;

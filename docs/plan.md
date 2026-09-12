@@ -140,3 +140,24 @@ Write `docs/temp/build-report.md`: files created, verification results, any devi
 - Add/edit form (`overlay-log`): type select, date, km, description (textarea), cost, remindKm, remindMonths. Delete button in edit mode.
 - Dashboard "next service" card reads the earliest upcoming reminder from log entries.
 - i18n keys: tabLog, addLog, logTypes.{service,repair,wash,inspection,other}, description, filterAll, due, logEmpty, etc.
+
+## 16. Dark mode + UX fixes — v0.1.2
+### Dark mode (MANDATORY feature)
+- Add `[data-theme="dark"]` overrides in styles.css for ALL design tokens (warm dark palette, NOT pure black):
+  `--bg: #1A1815; --surface: #24211C; --surface-2: #2E2A24; --border: #3A352E; --text: #EDE8E0; --text-2: #B5ADA1; --text-3: #8A8378; --accent: #F0661F; --accent-2: #F5A623; --ok: #4CAF6D; --warn: #F0661F; --danger: #E5484D; --shadow: 0 1px 3px rgba(0,0,0,.4);`
+- Settings (Postavke) gets a theme selector: **Auto / Svijetla / Tamna** (segmented control, IDs `set-theme-auto`, `set-theme-light`, `set-theme-dark`). Persist in `settings.theme` ('auto' default | 'light' | 'dark').
+- Apply: set `data-theme="light"|"dark"` on `<html>`. Auto = follow `prefers-color-scheme` + live listener for changes.
+- Update `meta[name=theme-color]` dynamically: light → `#F5F2ED`, dark → `#1A1815`.
+- i18n keys: theme, themeAuto, themeLight, themeDark.
+- Verify ALL views/overlays/tab bar look correct in dark mode (no hardcoded light colors left).
+
+### No text selection on buttons (user preference — remember it)
+- CSS: `user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;` on ALL interactive elements: buttons, `.tab`, `.chip`, `.filter-chip`, `.menu-item`, `.vehicle-chip`, `.log-item`, `.stat`, `.quick-action`, any clickable row.
+- `touch-action: manipulation` on those elements (kills double-tap zoom + selection).
+
+### No pinch-to-zoom
+- viewport meta: `width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover`.
+- body: `touch-action: pan-x pan-y;` + `-webkit-text-size-adjust: 100%;`.
+
+### Version
+- Bump to **0.1.2** in ALL carriers: APP_VERSION, version.json, `?v=` params, SW cache name, UI version labels (more-version, set-version).

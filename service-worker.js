@@ -1,14 +1,14 @@
-/* AutoServis Service Worker — v0.1.1 */
+/* AutoServis Service Worker — v0.1.2 */
 'use strict';
 
-const CACHE_NAME = 'autoservis-cache-v0.1.1';
+const CACHE_NAME = 'autoservis-cache-v0.1.2';
 
 const PRECACHE_URLS = [
   '/',
   '/index.html',
-  '/styles.css?v=0.1.1',
-  '/fonts.css?v=0.1.1',
-  '/app.js?v=0.1.1',
+  '/styles.css?v=0.1.2',
+  '/fonts.css?v=0.1.2',
+  '/app.js?v=0.1.2',
   '/manifest.json',
   '/version.json',
   '/icons/icon-192.png',

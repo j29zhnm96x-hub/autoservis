@@ -2,8 +2,8 @@
 <html lang="hr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#D9480F">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#F5F2ED">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -12,9 +12,22 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.json">
   <title>AutoServis</title>
-  <link rel="stylesheet" href="/styles.css?v=0.1.1">
-  <link rel="stylesheet" href="/fonts.css?v=0.1.1">
-  <script src="/app.js?v=0.1.1" defer></script>
+  <script>
+    /* Apply saved/system theme before CSS paints to avoid light-mode flash. */
+    (function () {
+      try {
+        var d = JSON.parse(localStorage.getItem('autoservis_data') || '{}');
+        var s = (d.settings && d.settings.theme) || 'auto';
+        var dark = s === 'dark' || (s === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="/styles.css?v=0.1.2">
+  <link rel="stylesheet" href="/fonts.css?v=0.1.2">
+  <script src="/app.js?v=0.1.2" defer></script>
 </head>
 <body>
   <header class="app-header">
@@ -84,7 +97,7 @@
         <button class="menu__item" id="menu-documents" data-i18n="menuDocuments">Dokumenti</button>
         <button class="menu__item" id="menu-settings" data-i18n="menuSettings">Postavke</button>
       </nav>
-      <div class="more-version" id="more-version">v0.1.1</div>
+      <div class="more-version" id="more-version">v0.1.2</div>
     </section>
 
     <!-- ============ VIEW: VEHICLES ============ -->
@@ -121,6 +134,14 @@
     <!-- ============ VIEW: SETTINGS ============ -->
     <section class="view" id="view-settings">
       <div class="settings-group">
+        <h2 class="settings-group__title" data-i18n="theme">Izgled</h2>
+        <div class="settings-row settings-row--segmented">
+          <button class="btn" id="set-theme-auto" data-i18n="themeAuto">Auto</button>
+          <button class="btn" id="set-theme-light" data-i18n="themeLight">Svijetla</button>
+          <button class="btn" id="set-theme-dark" data-i18n="themeDark">Tamna</button>
+        </div>
+      </div>
+      <div class="settings-group">
         <h2 class="settings-group__title" data-i18n="language">Jezik</h2>
         <div class="settings-row">
           <button class="btn" id="set-lang-hr">Hrvatski</button>
@@ -139,7 +160,7 @@
         <h2 class="settings-group__title" data-i18n="resetData">Reset podataka</h2>
         <button class="btn btn--danger" id="btn-reset" data-i18n="resetData">Reset podataka</button>
       </div>
-      <div class="settings-version" id="set-version">v0.1.1</div>
+      <div class="settings-version" id="set-version">v0.1.2</div>
     </section>
 
   </main>

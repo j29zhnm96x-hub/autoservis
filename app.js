@@ -7,7 +7,7 @@
 'use strict';
 
 // ==== CONFIG ====
-const APP_VERSION = '0.1.1';
+const APP_VERSION = '0.1.2';
 const STORAGE_KEY = 'autoservis_data';
 const DB_NAME = 'autoservis_photos';
 const DB_STORE = 'photos';
@@ -99,6 +99,10 @@ const I18N = {
       other: 'Drugo'
     },
     language: 'Jezik',
+    theme: 'Izgled',
+    themeAuto: 'Auto',
+    themeLight: 'Svijetla',
+    themeDark: 'Tamna',
     exportData: 'Izvezi podatke',
     importData: 'Uvezi podatke',
     resetData: 'Obriši sve podatke',
@@ -253,6 +257,10 @@ const I18N = {
       other: 'Other'
     },
     language: 'Language',
+    theme: 'Appearance',
+    themeAuto: 'Auto',
+    themeLight: 'Light',
+    themeDark: 'Dark',
     exportData: 'Export data',
     importData: 'Import data',
     resetData: 'Delete all data',
@@ -441,7 +449,7 @@ function statLabel(label, value) {
 function defaultData() {
   return {
     version: 1,
-    settings: { lang: 'hr' },
+    settings: { lang: 'hr', theme: 'auto' },
     activeVehicleId: null,
     vehicles: [],
     log: [],
@@ -479,7 +487,10 @@ function normalizeData(raw) {
   const d = defaultData();
   if (!raw || typeof raw !== 'object') return d;
   raw = migrateServicesToLog(raw);
-  d.settings = { lang: raw.settings && raw.settings.lang === 'en' ? 'en' : 'hr' };
+  d.settings = {
+    lang: raw.settings && raw.settings.lang === 'en' ? 'en' : 'hr',
+    theme: raw.settings && ['auto', 'light', 'dark'].indexOf(raw.settings.theme) !== -1 ? raw.settings.theme : 'auto'
+  };
   d.activeVehicleId = typeof raw.activeVehicleId === 'string' ? raw.activeVehicleId : null;
   ['vehicles', 'log', 'deadlines', 'fuel', 'documents'].forEach(function (k) {
     d[k] = Array.isArray(raw[k]) ? raw[k] : [];
@@ -1828,6 +1839,11 @@ function renderSettings() {
   const lang = state.data.settings.lang;
   if (hrBtn) hrBtn.classList.toggle('btn--active', lang === 'hr');
   if (enBtn) enBtn.classList.toggle('btn--active', lang === 'en');
+  const theme = state.data.settings.theme || 'auto';
+  ['auto', 'light', 'dark'].forEach(function (m) {
+    const btn = byId('set-theme-' + m);
+    if (btn) btn.classList.toggle('btn--active', theme === m);
+  });
 }
 
 function setLang(lang) {
@@ -1878,6 +1894,40 @@ async function resetData() {
   applyI18n();
   showView('home');
   toast(t('resetDone'));
+}
+
+// ==== THEME ====
+const THEME_META = { light: '#F5F2ED', dark: '#1A1815' };
+let themeMedia = null;
+
+function getSystemTheme() {
+  return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+}
+
+function applyTheme() {
+  const setting = (state.data && state.data.settings && state.data.settings.theme) || 'auto';
+  const theme = setting === 'auto' ? getSystemTheme() : setting;
+  document.documentElement.setAttribute('data-theme', theme);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', THEME_META[theme] || THEME_META.light);
+}
+
+function setTheme(theme) {
+  state.data.settings.theme = theme;
+  saveData();
+  applyTheme();
+  renderSettings();
+}
+
+function wireThemeListener() {
+  if (!window.matchMedia) return;
+  themeMedia = window.matchMedia('(prefers-color-scheme: dark)');
+  const onChange = function () {
+    const setting = (state.data && state.data.settings && state.data.settings.theme) || 'auto';
+    if (setting === 'auto') applyTheme();
+  };
+  if (themeMedia.addEventListener) themeMedia.addEventListener('change', onChange);
+  else if (themeMedia.addListener) themeMedia.addListener(onChange);
 }
 
 // ==== I18N APPLY ====
@@ -2052,6 +2102,12 @@ function wireEvents() {
   if (setLangHr) setLangHr.addEventListener('click', function () { setLang('hr'); });
   const setLangEn = byId('set-lang-en');
   if (setLangEn) setLangEn.addEventListener('click', function () { setLang('en'); });
+  const setThemeAuto = byId('set-theme-auto');
+  if (setThemeAuto) setThemeAuto.addEventListener('click', function () { setTheme('auto'); });
+  const setThemeLight = byId('set-theme-light');
+  if (setThemeLight) setThemeLight.addEventListener('click', function () { setTheme('light'); });
+  const setThemeDark = byId('set-theme-dark');
+  if (setThemeDark) setThemeDark.addEventListener('click', function () { setTheme('dark'); });
   const btnExport = byId('btn-export');
   if (btnExport) btnExport.addEventListener('click', exportData);
   const btnImport = byId('btn-import');
@@ -2107,6 +2163,8 @@ function registerSW() {
 function init() {
   loadData();
   ensureActiveVehicle();
+  applyTheme();
+  wireThemeListener();
   openDB().then(function (db) {
     state.db = db;
   }).catch(function () {
