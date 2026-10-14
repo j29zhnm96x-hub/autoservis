@@ -1,5 +1,14 @@
 # AutoServis — Changes
 
+## v2.1.0 (2026-10-14) — Deadlines, update check, backdated fuel
+- **Vehicle deadline dates:** vehicle model gains optional `regExpiry`/`techExpiry`/`insExpiry` (ISO date or null). Vehicle edit overlay gets 3 date inputs (`vh-reg`, `vh-tech`, `vh-ins`; labels "Registracija do / Tehnički pregled do / Osiguranje do", all optional). Migration on load (`normalizeV2` + `migrateToV2` via `normDateStr`) adds the three fields as `null` to existing vehicles.
+- **Dashboard countdown chips** (`#home-deadlines`, under the vehicle card): 3 chips for the active vehicle — label + "X dana". Green >30 d, amber 7–30 d (inclusive), red <7 d or expired ("isteklo"), gray "—" when not set. Tap chip → opens vehicle edit form. `dl-chip` styles (light+dark), `deadline-row` 3-col grid.
+- **Manual update check** (Postavke): `btn-check-update` → fetches `version.json?cb=<ts>` (`cache:'no-store'`; cache-buster bypasses the SW cache-first strategy). Newer (≠ APP_VERSION) → toast "Dostupna nova verzija vX.Y.Z — Osvježi" + shows the existing update banner (reload action); same → toast "Ažurni ste (vX.Y.Z)".
+- **Backdate fuel entries:** `fl-date` is a plain `<input type="date">` (defaults today, no `min`, no past-date validation) with hint "Datum može biti u prošlosti" (`.field__hint`). `computeConsumptions` rewritten: previous fill-up = **highest km still below the current entry's km** among full-tank entries (createdAt tiebreak) — not entry order / date order — so backdated entries compute correctly.
+- i18n hr/en: `reg, tech, insurance, regExpiry, techExpiry, insExpiry, daysLeft, expired, notSet, dateHint, checkForUpdate, updateAvailable, upToDate, refresh`.
+- Version 2.1.0 everywhere: `APP_VERSION`, `version.json`, `?v=2.1.0` asset params, SW cache `autoservis-cache-v2.1.0`, UI version label.
+- Verified locally: Playwright 390×844 — 31/31 checks, zero console errors. See `docs/temp/build-report.md`.
+
 ## v2.0.0 "SIMPLE" (2026-10-14) — Full rewrite
 - **Rebuilt from scratch** per `docs/plan.md` v2.0.0: dead-simple tracker — fuel log + service log + auto-reminders. Nothing else.
 - 4 tabs replace the 5-tab More-menu pattern: Početna, Gorivo, Servisi, Postavke.

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   AutoServis — app.js v2.0.0 (SIMPLE)
+   AutoServis — app.js v2.1.0 (SIMPLE)
    Fuel log + service log + auto-reminders for a few cars. Vanilla JS.
    Contract: docs/plan.md. DOM IDs match index.html verbatim.
    ========================================================================== */
@@ -7,7 +7,7 @@
 'use strict';
 
 // ==== CONFIG ====
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 const STORAGE_KEY = 'autoservis_data';
 
 const SERVICE_TYPES = ['oil', 'air-filter', 'fuel-filter', 'timing-belt', 'other'];
@@ -89,6 +89,20 @@ const I18N = {
     model: 'Model',
     year: 'Godina',
     plate: 'Registracija',
+    reg: 'Registracija',
+    tech: 'Tehnički',
+    insurance: 'Osiguranje',
+    regExpiry: 'Registracija do',
+    techExpiry: 'Tehnički pregled do',
+    insExpiry: 'Osiguranje do',
+    daysLeft: '{days} dana',
+    expired: 'isteklo',
+    notSet: '—',
+    dateHint: 'Datum može biti u prošlosti',
+    checkForUpdate: 'Provjeri ažuriranje',
+    updateAvailable: 'Dostupna nova verzija v{version} — Osvježi',
+    upToDate: 'Ažurni ste (v{version})',
+    refresh: 'Osvježi',
     mileage: 'Kilometraža',
     vehicles: 'Vozila',
     noVehicles: 'Nema vozila',
@@ -184,6 +198,20 @@ const I18N = {
     model: 'Model',
     year: 'Year',
     plate: 'Plate',
+    reg: 'Registration',
+    tech: 'Technical',
+    insurance: 'Insurance',
+    regExpiry: 'Registration until',
+    techExpiry: 'Technical inspection until',
+    insExpiry: 'Insurance until',
+    daysLeft: '{days} days',
+    expired: 'expired',
+    notSet: '—',
+    dateHint: 'Date can be in the past',
+    checkForUpdate: 'Check for update',
+    updateAvailable: 'New version v{version} available — Refresh',
+    upToDate: 'You are up to date (v{version})',
+    refresh: 'Refresh',
     mileage: 'Mileage',
     vehicles: 'Vehicles',
     noVehicles: 'No vehicles',
@@ -338,6 +366,11 @@ function defaultData() {
   };
 }
 
+/* Optional ISO date (YYYY-MM-DD…) or null — normalizes vehicle expiry fields. */
+function normDateStr(val) {
+  return (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val)) ? val : null;
+}
+
 /* Normalize a v2-shaped object back to the exact model (drops unknown fields). */
 function normalizeV2(raw) {
   const d = defaultData();
@@ -351,6 +384,7 @@ function normalizeV2(raw) {
     return {
       id: v.id || uid(), name: v.name || '', make: v.make || '', model: v.model || '',
       year: v.year || null, plate: v.plate || '', mileage: Number(v.mileage) || 0,
+      regExpiry: normDateStr(v.regExpiry), techExpiry: normDateStr(v.techExpiry), insExpiry: normDateStr(v.insExpiry),
       createdAt: v.createdAt || new Date().toISOString()
     };
   });
@@ -385,6 +419,7 @@ function migrateToV2(raw) {
     return {
       id: v.id || uid(), name: v.name || '', make: v.make || '', model: v.model || '',
       year: v.year || null, plate: v.plate || '', mileage: Number(v.mileage) || 0,
+      regExpiry: normDateStr(v.regExpiry), techExpiry: normDateStr(v.techExpiry), insExpiry: normDateStr(v.insExpiry),
       createdAt: v.createdAt || new Date().toISOString()
     };
   });
@@ -463,23 +498,31 @@ function sortNewest(list) {
 }
 
 // ==== FUEL CONSUMPTION ====
-/* liters / (km − prevKm) × 100, full-tank → full-tank only
-   (current AND previous entries both full, positive delta). */
+/* liters / (km − prevKm) × 100, full-tank → full-tank only.
+   Previous fill-up = the HIGHEST km still below the current entry's km
+   (not entry order / date order), so backdated entries compute correctly. */
 function computeConsumptions(fuelEntries) {
-  const sorted = fuelEntries.slice().sort(function (a, b) {
-    const ka = (a.date || '') + '|' + String(a.km || 0).padStart(10, '0') + '|' + (a.createdAt || '');
-    const kb = (b.date || '') + '|' + String(b.km || 0).padStart(10, '0') + '|' + (b.createdAt || '');
-    return ka.localeCompare(kb);
-  });
+  const fulls = fuelEntries.filter(function (f) { return f.full; });
   const map = new Map();
-  for (let i = 1; i < sorted.length; i++) {
-    const cur = sorted[i];
-    const prev = sorted[i - 1];
-    if (!cur.full || !prev.full) continue;
-    const delta = (Number(cur.km) || 0) - (Number(prev.km) || 0);
-    if (delta <= 0) continue;
+  fulls.forEach(function (cur) {
+    const curKm = Number(cur.km) || 0;
+    let prev = null;
+    for (let i = 0; i < fulls.length; i++) {
+      const cand = fulls[i];
+      if (cand.id === cur.id) continue;
+      const candKm = Number(cand.km) || 0;
+      if (candKm >= curKm) continue;
+      if (!prev ||
+          candKm > (Number(prev.km) || 0) ||
+          (candKm === (Number(prev.km) || 0) && (cand.createdAt || '') > (prev.createdAt || ''))) {
+        prev = cand;
+      }
+    }
+    if (!prev) return;
+    const delta = curKm - (Number(prev.km) || 0);
+    if (delta <= 0) return;
     map.set(cur.id, ((Number(cur.liters) || 0) / delta) * 100);
-  }
+  });
   return map;
 }
 
@@ -659,9 +702,36 @@ function closeOverlay(id) {
 }
 
 // ==== VIEW: HOME ====
+/* 3 deadline countdown chips (reg/tech/insurance) for a vehicle.
+   green >30 days, amber 7–30, red <7 or expired, gray "—" when not set. */
+function deadlineChipsHTML(vehicle) {
+  const defs = [
+    { key: 'regExpiry', label: t('reg') },
+    { key: 'techExpiry', label: t('tech') },
+    { key: 'insExpiry', label: t('insurance') }
+  ];
+  return defs.map(function (d) {
+    const iso = vehicle[d.key];
+    let cls = 'dl-chip--none';
+    let val = t('notSet');
+    if (iso) {
+      const days = daysBetween(todayISO(), iso);
+      if (days <= 0) { cls = 'dl-chip--danger'; val = t('expired'); }
+      else if (days > 30) { cls = 'dl-chip--ok'; val = t('daysLeft', { days: plainInt(days) }); }
+      else if (days >= 7) { cls = 'dl-chip--warn'; val = t('daysLeft', { days: plainInt(days) }); }
+      else { cls = 'dl-chip--danger'; val = t('daysLeft', { days: plainInt(days) }); }
+    }
+    return '<button type="button" class="dl-chip ' + cls + '" data-action="edit-vehicle" data-id="' + esc(vehicle.id) + '">' +
+      '<span class="dl-chip__label">' + esc(d.label) + '</span>' +
+      '<span class="dl-chip__value">' + esc(val) + '</span>' +
+      '</button>';
+  }).join('');
+}
+
 function renderHome() {
   const chips = byId('home-chips');
   const card = byId('home-vehicle');
+  const deadlines = byId('home-deadlines');
   const next = byId('home-next');
   const lastFuel = byId('home-last-fuel');
   const vehicles = state.data.vehicles;
@@ -670,6 +740,7 @@ function renderHome() {
     chips.innerHTML = '';
     card.innerHTML = '<div class="empty-state"><p>' + esc(t('noVehicles')) + '</p>' +
       '<button type="button" class="btn btn--primary" data-action="add-vehicle">' + esc(t('addVehicle')) + '</button></div>';
+    deadlines.innerHTML = '';
     next.innerHTML = '';
     lastFuel.innerHTML = '';
     return;
@@ -689,6 +760,8 @@ function renderHome() {
     (fullName ? '<div class="vc-sub">' + esc(fullName) + (active.year ? ' · ' + esc(active.year) : '') + '</div>' : '') +
     (active.plate ? '<div class="vc-plate">' + esc(active.plate) + '</div>' : '') +
     '<div class="vc-mileage">' + fmtKm(active.mileage) + '</div>';
+
+  deadlines.innerHTML = deadlineChipsHTML(active);
 
   const ns = nextServiceFor(active);
   next.classList.remove('card--ok', 'card--soon', 'card--overdue');
@@ -971,6 +1044,9 @@ function openVehicleOverlay(id) {
     byId('vh-year').value = v.year || '';
     byId('vh-plate').value = v.plate || '';
     byId('vh-mileage').value = v.mileage != null ? v.mileage : '';
+    byId('vh-reg').value = v.regExpiry || '';
+    byId('vh-tech').value = v.techExpiry || '';
+    byId('vh-ins').value = v.insExpiry || '';
   } else {
     byId('vh-name').value = '';
     byId('vh-make').value = '';
@@ -978,6 +1054,9 @@ function openVehicleOverlay(id) {
     byId('vh-year').value = '';
     byId('vh-plate').value = '';
     byId('vh-mileage').value = '';
+    byId('vh-reg').value = '';
+    byId('vh-tech').value = '';
+    byId('vh-ins').value = '';
   }
   openOverlay('overlay-vehicle');
 }
@@ -993,7 +1072,10 @@ function saveVehicle() {
     model: byId('vh-model').value.trim(),
     year: yearRaw ? Number(yearRaw) : null,
     plate: byId('vh-plate').value.trim(),
-    mileage: parseNum(byId('vh-mileage').value)
+    mileage: parseNum(byId('vh-mileage').value),
+    regExpiry: byId('vh-reg').value || null,
+    techExpiry: byId('vh-tech').value || null,
+    insExpiry: byId('vh-ins').value || null
   };
   if (state.editingId) {
     const existing = getVehicle(state.editingId);
@@ -1095,6 +1177,23 @@ function checkVersion() {
     .catch(function () { /* offline — banner only on mismatch */ });
 }
 
+/* Manual check from Settings (btn-check-update). Cache-busting query bypasses
+   the SW's cache-first strategy so a real remote version.json is always read. */
+function checkForUpdate() {
+  fetch('version.json?cb=' + Date.now(), { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw new Error('version fetch failed'); return r.json(); })
+    .then(function (json) {
+      if (json && json.version && json.version !== APP_VERSION) {
+        toast(t('updateAvailable', { version: json.version }));
+        const banner = byId('update-banner');
+        if (banner) banner.hidden = false;
+      } else {
+        toast(t('upToDate', { version: APP_VERSION }));
+      }
+    })
+    .catch(function () { /* offline — no toast, matches auto check */ });
+}
+
 // ==== EVENTS ====
 function bindEvents() {
   // Tabs
@@ -1150,6 +1249,7 @@ function bindEvents() {
     e.target.value = '';
   });
   byId('btn-reset').addEventListener('click', resetData);
+  byId('btn-check-update').addEventListener('click', checkForUpdate);
 
   // Delegated clicks: chips, table rows, vehicle rows, home empty-state button
   document.addEventListener('click', function (e) {

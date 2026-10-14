@@ -25,9 +25,9 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="/styles.css?v=2.0.0">
-  <link rel="stylesheet" href="/fonts.css?v=2.0.0">
-  <script src="/app.js?v=2.0.0" defer></script>
+  <link rel="stylesheet" href="/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="/fonts.css?v=2.1.0">
+  <script src="/app.js?v=2.1.0" defer></script>
 </head>
 <body>
   <header class="app-header">
@@ -40,6 +40,7 @@
     <section class="view view--active" id="view-home">
       <div class="chip-row" id="home-chips"></div>
       <div class="card" id="home-vehicle"></div>
+      <div class="deadline-row" id="home-deadlines"></div>
       <div class="card card--status" id="home-next"></div>
       <div class="card" id="home-last-fuel"></div>
       <div class="quick-actions">
@@ -132,7 +133,12 @@
           <button class="btn btn--danger btn--block" id="btn-reset" data-i18n="resetData">Obriši sve podatke</button>
         </div>
       </div>
-      <div class="settings-version" id="set-version">v2.0.0</div>
+      <div class="settings-group">
+        <div class="settings-row">
+          <button class="btn btn--secondary btn--block" id="btn-check-update" data-i18n="checkForUpdate">Provjeri ažuriranje</button>
+        </div>
+      </div>
+      <div class="settings-version" id="set-version">v2.1.0</div>
     </section>
 
   </main>
@@ -156,6 +162,7 @@
         <label class="field">
           <span class="field__label" data-i18n="date">Datum</span>
           <input type="date" id="fl-date">
+          <span class="field__hint" data-i18n="dateHint">Datum može biti u prošlosti</span>
         </label>
         <label class="field">
           <span class="field__label" data-i18n="mileage">Kilometraža</span>
@@ -268,6 +275,18 @@
         <label class="field">
           <span class="field__label" data-i18n="mileage">Kilometraža</span>
           <input type="number" id="vh-mileage" inputmode="numeric" min="0" step="1">
+        </label>
+        <label class="field">
+          <span class="field__label" data-i18n="regExpiry">Registracija do</span>
+          <input type="date" id="vh-reg">
+        </label>
+        <label class="field">
+          <span class="field__label" data-i18n="techExpiry">Tehnički pregled do</span>
+          <input type="date" id="vh-tech">
+        </label>
+        <label class="field">
+          <span class="field__label" data-i18n="insExpiry">Osiguranje do</span>
+          <input type="date" id="vh-ins">
         </label>
       </div>
       <div class="overlay__footer">

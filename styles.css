@@ -1,5 +1,5 @@
 /* ============================================================
-   AutoServis — styles.css v2.0.0 (SIMPLE)
+   AutoServis — styles.css v2.1.0 (SIMPLE)
    Warm palette + dark mode (from v0.1.2). Manrope. Radius 6/10/16.
    No gradients, no glassmorphism, no purple, no pill buttons.
    ============================================================ */
@@ -76,6 +76,7 @@ img { max-width: 100%; display: block; }
 .btn,
 .tab,
 .chip,
+.dl-chip,
 .table tbody tr,
 .overlay__close,
 .field--check,
@@ -250,6 +251,14 @@ img { max-width: 100%; display: block; }
 
 .field textarea { min-height: 72px; resize: vertical; }
 
+/* Small hint under a form field (e.g. "datum može biti u prošlosti"). */
+.field__hint {
+  display: block;
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
@@ -384,6 +393,56 @@ img { max-width: 100%; display: block; }
 [data-theme="dark"] .vc-plate { background: rgba(240,102,31,.15); }
 
 .vc-mileage { font-size: 13px; color: var(--text-2); margin-top: 8px; }
+
+/* Deadline countdown chips (reg / technical / insurance) under the vehicle card. */
+.deadline-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.dl-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--text-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-family: inherit;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.dl-chip:active { background: var(--surface-2); }
+
+.dl-chip__label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.dl-chip__value { font-size: 13px; font-weight: 700; color: var(--text-2); }
+
+.dl-chip--ok { border-left-color: var(--ok); }
+.dl-chip--ok .dl-chip__value { color: var(--ok); }
+.dl-chip--warn { border-left-color: var(--accent-2); }
+.dl-chip--warn .dl-chip__value { color: #9A6700; }
+.dl-chip--danger { border-left-color: var(--danger); }
+.dl-chip--danger .dl-chip__value { color: var(--danger); }
+.dl-chip--none .dl-chip__value { color: var(--text-3); }
+
+[data-theme="dark"] .dl-chip--warn .dl-chip__value { color: var(--accent-2); }
 
 .ns-title { font-size: 13px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: .05em; }
 .ns-title--muted { margin-bottom: 6px; }
