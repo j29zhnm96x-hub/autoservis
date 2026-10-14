@@ -13,7 +13,7 @@
   <link rel="manifest" href="/manifest.json">
   <title>AutoServis</title>
   <script>
-    /* Apply saved/system theme before CSS paints to avoid light-mode flash. */
+    /* Apply saved/system theme before CSS paints to avoid a flash of the wrong theme. */
     (function () {
       try {
         var d = JSON.parse(localStorage.getItem('autoservis_data') || '{}');
@@ -25,9 +25,9 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="/styles.css?v=0.1.2">
-  <link rel="stylesheet" href="/fonts.css?v=0.1.2">
-  <script src="/app.js?v=0.1.2" defer></script>
+  <link rel="stylesheet" href="/styles.css?v=2.0.0">
+  <link rel="stylesheet" href="/fonts.css?v=2.0.0">
+  <script src="/app.js?v=2.0.0" defer></script>
 </head>
 <body>
   <header class="app-header">
@@ -38,129 +38,101 @@
 
     <!-- ============ VIEW: HOME ============ -->
     <section class="view view--active" id="view-home">
-      <div class="home-vehicle-row" id="home-vehicle-row"></div>
-      <div class="card" id="home-vehicle-card"></div>
-      <div class="card" id="home-next-service"></div>
-      <div class="home-deadlines" id="home-deadlines"></div>
-      <div class="home-stats">
-        <div class="stat" id="home-stat-last-service"></div>
-        <div class="stat" id="home-stat-consumption"></div>
-        <div class="stat" id="home-stat-cost"></div>
-      </div>
+      <div class="chip-row" id="home-chips"></div>
+      <div class="card" id="home-vehicle"></div>
+      <div class="card card--status" id="home-next"></div>
+      <div class="card" id="home-last-fuel"></div>
       <div class="quick-actions">
-        <button class="btn btn--primary" id="btn-quick-service" data-i18n="addService">Dodaj servis</button>
         <button class="btn btn--primary" id="btn-quick-fuel" data-i18n="addFuel">Dodaj gorivo</button>
-      </div>
-    </section>
-
-    <!-- ============ VIEW: LOG (DNEVNIK) ============ -->
-    <section class="view" id="view-log">
-      <div class="view-header">
-        <button class="btn btn--primary" id="btn-add-log" data-i18n="addLog">Dodaj unos</button>
-      </div>
-      <div class="filter-chips" id="log-filter"></div>
-      <div class="list" id="log-list">
-        <div class="empty-state" data-i18n="logEmpty">Nema unosa</div>
+        <button class="btn btn--primary" id="btn-quick-service" data-i18n="addService">Dodaj servis</button>
       </div>
     </section>
 
     <!-- ============ VIEW: FUEL ============ -->
     <section class="view" id="view-fuel">
+      <div class="stat" id="fuel-avg"></div>
       <div class="view-header">
-        <button class="btn btn--primary" id="btn-add-fuel" data-i18n="addFuel">Dodaj gorivo</button>
+        <button class="btn btn--primary btn--icon" id="btn-add-fuel" aria-label="Add fuel">+</button>
       </div>
-      <div class="fuel-stats">
-        <div class="stat" id="fuel-stat-avg"></div>
-        <div class="stat" id="fuel-stat-total"></div>
-        <div class="stat" id="fuel-stat-liters"></div>
+      <div class="table-wrap">
+        <table class="table" id="fuel-table">
+          <thead>
+            <tr>
+              <th data-i18n="date">Datum</th>
+              <th data-i18n="kmTh">km</th>
+              <th data-i18n="liters">Litara</th>
+              <th data-i18n="total">Ukupno</th>
+              <th data-i18n="consShort">l/100</th>
+            </tr>
+          </thead>
+          <tbody id="fuel-rows"></tbody>
+        </table>
       </div>
-      <div class="list" id="fuel-list">
-        <div class="empty-state" data-i18n="noData">Nema podataka</div>
-      </div>
+      <div class="empty" id="fuel-empty" data-i18n="noFuel">Nema unosa goriva</div>
     </section>
 
-    <!-- ============ VIEW: DEADLINES ============ -->
-    <section class="view" id="view-deadlines">
+    <!-- ============ VIEW: SERVICES ============ -->
+    <section class="view" id="view-services">
       <div class="view-header">
-        <button class="btn btn--primary" id="btn-add-deadline" data-i18n="addDeadline">Dodaj rok</button>
+        <button class="btn btn--primary btn--icon" id="btn-add-service" aria-label="Add service">+</button>
       </div>
-      <div class="list" id="deadlines-list">
-        <div class="empty-state" data-i18n="noData">Nema podataka</div>
+      <div class="table-wrap">
+        <table class="table table--services" id="services-table">
+          <thead>
+            <tr>
+              <th data-i18n="type">Tip</th>
+              <th data-i18n="date">Datum</th>
+              <th data-i18n="kmTh">km</th>
+              <th data-i18n="work">Napravljeno</th>
+              <th data-i18n="cost">Trošak</th>
+            </tr>
+          </thead>
+          <tbody id="services-rows"></tbody>
+        </table>
       </div>
-    </section>
-
-    <!-- ============ VIEW: MORE ============ -->
-    <section class="view" id="view-more">
-      <nav class="menu">
-        <button class="menu__item" id="menu-vehicles" data-i18n="menuVehicles">Vozila</button>
-        <button class="menu__item" id="menu-costs" data-i18n="menuCosts">Troškovi</button>
-        <button class="menu__item" id="menu-documents" data-i18n="menuDocuments">Dokumenti</button>
-        <button class="menu__item" id="menu-settings" data-i18n="menuSettings">Postavke</button>
-      </nav>
-      <div class="more-version" id="more-version">v0.1.2</div>
-    </section>
-
-    <!-- ============ VIEW: VEHICLES ============ -->
-    <section class="view" id="view-vehicles">
-      <div class="view-header">
-        <button class="btn btn--primary" id="btn-add-vehicle" data-i18n="addVehicle">Dodaj vozilo</button>
-      </div>
-      <div class="list" id="vehicles-list">
-        <div class="empty-state" data-i18n="noVehicles">Nema vozila</div>
-      </div>
-    </section>
-
-    <!-- ============ VIEW: COSTS ============ -->
-    <section class="view" id="view-costs">
-      <div class="costs-stats">
-        <div class="stat" id="cost-total"></div>
-        <div class="stat" id="cost-year"></div>
-        <div class="stat" id="cost-month"></div>
-      </div>
-      <div class="costs-chart" id="costs-chart"></div>
-      <div class="costs-breakdown" id="costs-breakdown"></div>
-    </section>
-
-    <!-- ============ VIEW: DOCUMENTS ============ -->
-    <section class="view" id="view-documents">
-      <div class="view-header">
-        <button class="btn btn--primary" id="btn-add-document" data-i18n="addDocument">Dodaj dokument</button>
-      </div>
-      <div class="list" id="documents-list">
-        <div class="empty-state" data-i18n="noData">Nema podataka</div>
-      </div>
+      <div class="empty" id="services-empty" data-i18n="noServices">Nema unosa servisa</div>
     </section>
 
     <!-- ============ VIEW: SETTINGS ============ -->
     <section class="view" id="view-settings">
       <div class="settings-group">
+        <h2 class="settings-group__title" data-i18n="vehicles">Vozila</h2>
+        <div id="settings-vehicles"></div>
+        <div class="settings-row">
+          <button class="btn btn--primary btn--block" id="btn-add-vehicle" data-i18n="addVehicle">Dodaj vozilo</button>
+        </div>
+      </div>
+      <div class="settings-group">
+        <h2 class="settings-group__title" data-i18n="language">Jezik</h2>
+        <div class="settings-row settings-row--seg2">
+          <button class="btn" id="set-lang-hr">Hrvatski</button>
+          <button class="btn" id="set-lang-en">English</button>
+        </div>
+      </div>
+      <div class="settings-group">
         <h2 class="settings-group__title" data-i18n="theme">Izgled</h2>
-        <div class="settings-row settings-row--segmented">
+        <div class="settings-row settings-row--seg3">
           <button class="btn" id="set-theme-auto" data-i18n="themeAuto">Auto</button>
           <button class="btn" id="set-theme-light" data-i18n="themeLight">Svijetla</button>
           <button class="btn" id="set-theme-dark" data-i18n="themeDark">Tamna</button>
         </div>
       </div>
       <div class="settings-group">
-        <h2 class="settings-group__title" data-i18n="language">Jezik</h2>
+        <h2 class="settings-group__title" data-i18n="data">Podaci</h2>
         <div class="settings-row">
-          <button class="btn" id="set-lang-hr">Hrvatski</button>
-          <button class="btn" id="set-lang-en">English</button>
+          <button class="btn btn--secondary btn--block" id="btn-export" data-i18n="exportData">Izvezi podatke</button>
+        </div>
+        <div class="settings-row">
+          <label class="btn btn--secondary btn--block file-label">
+            <span data-i18n="importData">Uvezi podatke</span>
+            <input class="file-input" type="file" id="btn-import" accept="application/json">
+          </label>
+        </div>
+        <div class="settings-row">
+          <button class="btn btn--danger btn--block" id="btn-reset" data-i18n="resetData">Obriši sve podatke</button>
         </div>
       </div>
-      <div class="settings-group">
-        <h2 class="settings-group__title" data-i18n="exportData">Izvoz podataka</h2>
-        <button class="btn" id="btn-export" data-i18n="exportData">Izvoz podataka</button>
-      </div>
-      <div class="settings-group">
-        <h2 class="settings-group__title" data-i18n="importData">Uvoz podataka</h2>
-        <input class="file-input" type="file" id="btn-import" accept="application/json">
-      </div>
-      <div class="settings-group">
-        <h2 class="settings-group__title" data-i18n="resetData">Reset podataka</h2>
-        <button class="btn btn--danger" id="btn-reset" data-i18n="resetData">Reset podataka</button>
-      </div>
-      <div class="settings-version" id="set-version">v0.1.2</div>
+      <div class="settings-version" id="set-version">v2.0.0</div>
     </section>
 
   </main>
@@ -168,68 +140,16 @@
   <!-- ============ TAB BAR ============ -->
   <nav class="tab-bar">
     <button class="tab tab--active" id="tab-home" data-i18n="tabHome">Početna</button>
-    <button class="tab" id="tab-log" data-i18n="tabLog">Dnevnik</button>
     <button class="tab" id="tab-fuel" data-i18n="tabFuel">Gorivo</button>
-    <button class="tab" id="tab-deadlines" data-i18n="tabDeadlines">Rokovi</button>
-    <button class="tab" id="tab-more" data-i18n="tabMore">Više</button>
+    <button class="tab" id="tab-services" data-i18n="tabServices">Servisi</button>
+    <button class="tab" id="tab-settings" data-i18n="tabSettings">Postavke</button>
   </nav>
-
-  <!-- ============ OVERLAY: LOG (DNEVNIK) ============ -->
-  <div class="overlay" id="overlay-log" hidden>
-    <div class="overlay__panel">
-      <div class="overlay__header">
-        <h2 class="overlay__title" id="overlay-log-title"></h2>
-        <button class="overlay__close" type="button" aria-label="Close">&times;</button>
-      </div>
-      <div class="overlay__body">
-        <label class="field">
-          <span class="field__label" data-i18n="type">Tip</span>
-          <select id="lg-type">
-            <option value="service" data-i18n="logTypes.service">Servis</option>
-            <option value="repair" data-i18n="logTypes.repair">Popravak</option>
-            <option value="wash" data-i18n="logTypes.wash">Pranje</option>
-            <option value="inspection" data-i18n="logTypes.inspection">Pregled</option>
-            <option value="other" data-i18n="logTypes.other">Ostalo</option>
-          </select>
-        </label>
-        <label class="field">
-          <span class="field__label" data-i18n="date">Datum</span>
-          <input type="date" id="lg-date">
-        </label>
-        <label class="field">
-          <span class="field__label" data-i18n="mileage">Kilometraža</span>
-          <input type="number" id="lg-km" inputmode="numeric" min="0" step="1">
-        </label>
-        <label class="field">
-          <span class="field__label" data-i18n="description">Opis</span>
-          <textarea id="lg-description" rows="2"></textarea>
-        </label>
-        <label class="field">
-          <span class="field__label" data-i18n="cost">Trošak</span>
-          <input type="number" id="lg-cost" inputmode="decimal" min="0" step="0.01">
-        </label>
-        <label class="field">
-          <span class="field__label" data-i18n="remindKm">Podsjeti nakon km</span>
-          <input type="number" id="lg-remind-km" inputmode="numeric" min="0" step="1">
-        </label>
-        <label class="field">
-          <span class="field__label" data-i18n="remindMonths">Podsjeti nakon mjeseci</span>
-          <input type="number" id="lg-remind-months" inputmode="numeric" min="0" step="1">
-        </label>
-      </div>
-      <div class="overlay__footer">
-        <button class="btn btn--danger" id="lg-delete" data-i18n="delete">Obriši</button>
-        <button class="btn" id="lg-cancel" data-i18n="cancel">Odustani</button>
-        <button class="btn btn--primary" id="lg-save" data-i18n="save">Spremi</button>
-      </div>
-    </div>
-  </div>
 
   <!-- ============ OVERLAY: FUEL ============ -->
   <div class="overlay" id="overlay-fuel" hidden>
     <div class="overlay__panel">
       <div class="overlay__header">
-        <h2 class="overlay__title" id="overlay-fuel-title"></h2>
+        <h2 class="overlay__title" id="fuel-title"></h2>
         <button class="overlay__close" type="button" aria-label="Close">&times;</button>
       </div>
       <div class="overlay__body">
@@ -239,16 +159,20 @@
         </label>
         <label class="field">
           <span class="field__label" data-i18n="mileage">Kilometraža</span>
-          <input type="number" id="fl-mileage" inputmode="numeric" min="0" step="1">
+          <input type="number" id="fl-km" inputmode="numeric" min="0" step="1">
         </label>
         <label class="field">
           <span class="field__label" data-i18n="liters">Litara</span>
           <input type="number" id="fl-liters" inputmode="decimal" min="0" step="0.01">
         </label>
         <label class="field">
-          <span class="field__label" data-i18n="price">Cijena po litri</span>
+          <span class="field__label" data-i18n="pricePerLiter">Cijena po litri</span>
           <input type="number" id="fl-price" inputmode="decimal" min="0" step="0.01">
         </label>
+        <div class="field-total">
+          <span class="field__label" data-i18n="total">Ukupno</span>
+          <span class="field-total__value" id="fl-total">0,00 €</span>
+        </div>
         <label class="field field--check">
           <input type="checkbox" id="fl-full">
           <span class="field__label" data-i18n="fullTank">Pun spremnik</span>
@@ -262,45 +186,53 @@
     </div>
   </div>
 
-  <!-- ============ OVERLAY: DEADLINE ============ -->
-  <div class="overlay" id="overlay-deadline" hidden>
+  <!-- ============ OVERLAY: SERVICE ============ -->
+  <div class="overlay" id="overlay-service" hidden>
     <div class="overlay__panel">
       <div class="overlay__header">
-        <h2 class="overlay__title" id="overlay-deadline-title"></h2>
+        <h2 class="overlay__title" id="service-title"></h2>
         <button class="overlay__close" type="button" aria-label="Close">&times;</button>
       </div>
       <div class="overlay__body">
         <label class="field">
           <span class="field__label" data-i18n="type">Tip</span>
-          <select id="dl-type">
-            <option value="registration" data-i18n="deadlineTypes.registration">Registracija</option>
-            <option value="insurance" data-i18n="deadlineTypes.insurance">Osiguranje</option>
-            <option value="technical" data-i18n="deadlineTypes.technical">Tehnički pregled</option>
-            <option value="license" data-i18n="deadlineTypes.license">Vozačka dozvola</option>
-            <option value="custom" data-i18n="deadlineTypes.custom">Drugo</option>
+          <select id="sv-type">
+            <option value="oil" data-i18n="serviceTypes.oil">Ulje i filter ulja</option>
+            <option value="air-filter" data-i18n="serviceTypes.airFilter">Filter zraka</option>
+            <option value="fuel-filter" data-i18n="serviceTypes.fuelFilter">Filter goriva</option>
+            <option value="timing-belt" data-i18n="serviceTypes.timingBelt">Razvodni remen</option>
+            <option value="other" data-i18n="serviceTypes.other">Ostalo</option>
           </select>
         </label>
         <label class="field">
-          <span class="field__label" data-i18n="label">Naziv</span>
-          <input type="text" id="dl-label">
-        </label>
-        <label class="field">
           <span class="field__label" data-i18n="date">Datum</span>
-          <input type="date" id="dl-date">
+          <input type="date" id="sv-date">
         </label>
         <label class="field">
-          <span class="field__label" data-i18n="cost">Trošak</span>
-          <input type="number" id="dl-cost" inputmode="decimal" min="0" step="0.01">
+          <span class="field__label" data-i18n="mileage">Kilometraža</span>
+          <input type="number" id="sv-km" inputmode="numeric" min="0" step="1">
+        </label>
+        <label class="field">
+          <span class="field__label" data-i18n="work">Što napravljeno</span>
+          <textarea id="sv-work" rows="2"></textarea>
+        </label>
+        <label class="field">
+          <span class="field__label" data-i18n="parts">Zamijenjeni dijelovi</span>
+          <input type="text" id="sv-parts">
         </label>
         <label class="field">
           <span class="field__label" data-i18n="notes">Bilješke</span>
-          <textarea id="dl-notes" rows="2"></textarea>
+          <textarea id="sv-notes" rows="2"></textarea>
+        </label>
+        <label class="field">
+          <span class="field__label" data-i18n="cost">Trošak</span>
+          <input type="number" id="sv-cost" inputmode="decimal" min="0" step="0.01">
         </label>
       </div>
       <div class="overlay__footer">
-        <button class="btn btn--danger" id="dl-delete" data-i18n="delete">Obriši</button>
-        <button class="btn" id="dl-cancel" data-i18n="cancel">Odustani</button>
-        <button class="btn btn--primary" id="dl-save" data-i18n="save">Spremi</button>
+        <button class="btn btn--danger" id="sv-delete" data-i18n="delete">Obriši</button>
+        <button class="btn" id="sv-cancel" data-i18n="cancel">Odustani</button>
+        <button class="btn btn--primary" id="sv-save" data-i18n="save">Spremi</button>
       </div>
     </div>
   </div>
@@ -309,7 +241,7 @@
   <div class="overlay" id="overlay-vehicle" hidden>
     <div class="overlay__panel">
       <div class="overlay__header">
-        <h2 class="overlay__title" id="overlay-vehicle-title"></h2>
+        <h2 class="overlay__title" id="vehicle-title"></h2>
         <button class="overlay__close" type="button" aria-label="Close">&times;</button>
       </div>
       <div class="overlay__body">
@@ -334,16 +266,8 @@
           <input type="text" id="vh-plate">
         </label>
         <label class="field">
-          <span class="field__label" data-i18n="vin">VIN</span>
-          <input type="text" id="vh-vin">
-        </label>
-        <label class="field">
           <span class="field__label" data-i18n="mileage">Kilometraža</span>
           <input type="number" id="vh-mileage" inputmode="numeric" min="0" step="1">
-        </label>
-        <label class="field">
-          <span class="field__label" data-i18n="notes">Bilješke</span>
-          <textarea id="vh-notes" rows="2"></textarea>
         </label>
       </div>
       <div class="overlay__footer">
@@ -355,79 +279,25 @@
     </div>
   </div>
 
-  <!-- ============ OVERLAY: DOCUMENT ============ -->
-  <div class="overlay" id="overlay-document" hidden>
-    <div class="overlay__panel">
-      <div class="overlay__header">
-        <h2 class="overlay__title" id="overlay-document-title"></h2>
-        <button class="overlay__close" type="button" aria-label="Close">&times;</button>
-      </div>
-      <div class="overlay__body">
-        <label class="field">
-          <span class="field__label" data-i18n="name">Naziv</span>
-          <input type="text" id="dc-name">
-        </label>
-        <label class="field">
-          <span class="field__label" data-i18n="type">Tip</span>
-          <select id="dc-type">
-            <option value="registration" data-i18n="documentTypes.registration">Registracija</option>
-            <option value="insurance" data-i18n="documentTypes.insurance">Osiguranje</option>
-            <option value="technical" data-i18n="documentTypes.technical">Tehnički pregled</option>
-            <option value="license" data-i18n="documentTypes.license">Vozačka dozvola</option>
-            <option value="other" data-i18n="documentTypes.other">Drugo</option>
-          </select>
-        </label>
-        <label class="field">
-          <span class="field__label" data-i18n="number">Broj</span>
-          <input type="text" id="dc-number">
-        </label>
-        <label class="field">
-          <span class="field__label" data-i18n="date">Datum</span>
-          <input type="date" id="dc-date">
-        </label>
-        <label class="field">
-          <span class="field__label" data-i18n="notes">Bilješke</span>
-          <textarea id="dc-notes" rows="2"></textarea>
-        </label>
-        <div class="field">
-          <span class="field__label" data-i18n="photo">Fotografija</span>
-          <input class="file-input" type="file" id="dc-photo" accept="image/*">
-          <div class="dc-photo-preview" id="dc-photo-preview"></div>
-        </div>
-      </div>
-      <div class="overlay__footer">
-        <button class="btn btn--danger" id="dc-delete" data-i18n="delete">Obriši</button>
-        <button class="btn" id="dc-cancel" data-i18n="cancel">Odustani</button>
-        <button class="btn btn--primary" id="dc-save" data-i18n="save">Spremi</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ PHOTO VIEWER ============ -->
-  <div class="photo-viewer" id="photo-viewer" hidden>
-    <img class="photo-viewer__img" id="photo-viewer-img" alt="">
-    <button class="photo-viewer__close" id="photo-viewer-close" type="button" aria-label="Close">&times;</button>
-  </div>
-
   <!-- ============ GLOBAL: TOAST ============ -->
   <div class="toast" id="toast" hidden></div>
 
   <!-- ============ GLOBAL: CONFIRM DIALOG ============ -->
-  <div class="confirm-dialog" id="confirm-dialog" hidden>
-    <div class="confirm-dialog__box">
-      <h3 class="confirm-dialog__title" id="confirm-title"></h3>
-      <p class="confirm-dialog__text" id="confirm-text"></p>
-      <div class="confirm-dialog__actions">
+  <div class="confirm" id="confirm" hidden>
+    <div class="confirm__panel" role="dialog" aria-modal="true">
+      <div class="confirm__title" id="confirm-title"></div>
+      <div class="confirm__text" id="confirm-text"></div>
+      <div class="confirm__actions">
         <button class="btn" id="confirm-cancel" data-i18n="cancel">Odustani</button>
-        <button class="btn btn--danger" id="confirm-ok" data-i18n="ok">OK</button>
+        <button class="btn btn--danger" id="confirm-ok" data-i18n="delete">Obriši</button>
       </div>
     </div>
   </div>
 
   <!-- ============ GLOBAL: UPDATE BANNER ============ -->
   <div class="update-banner" id="update-banner" hidden>
-    <span class="update-banner__text" id="update-banner-text" data-i18n="newVersion">Nova verzija dostupna</span>
-    <button class="update-banner__reload" id="update-banner-reload" data-i18n="reload">Učitaj ponovo</button>
+    <span class="update-banner__text" data-i18n="newVersion">Nova verzija dostupna</span>
+    <button class="update-banner__reload" id="update-reload" data-i18n="reload">Učitaj ponovo</button>
   </div>
 
 </body>

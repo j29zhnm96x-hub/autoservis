@@ -1,5 +1,20 @@
 # AutoServis — Changes
 
+## v2.0.0 "SIMPLE" (2026-10-14) — Full rewrite
+- **Rebuilt from scratch** per `docs/plan.md` v2.0.0: dead-simple tracker — fuel log + service log + auto-reminders. Nothing else.
+- 4 tabs replace the 5-tab More-menu pattern: Početna, Gorivo, Servisi, Postavke.
+- **Data model v2** (`autoservis_data`, `version: 2`): vehicles (no vin/notes), fuel (`km`, not `mileage`), services (`type|date|km|work|parts|notes|cost`). `log`/`deadlines`/`documents`/old `services` dropped.
+- **One-time migration** from v0.0.x/v0.1.2: transfers vehicles + fuel (renames `mileage`→`km`), drops log/deadlines/documents, one-time toast "Svjež početak za servisni dnevnik".
+- **Service cycle auto-reminders (CORE):** oil 8000 km/6 mo, air-filter 16000/12, fuel-filter 24000/24, timing-belt 60000/60, other = none. Next-due per type from the LAST service of that type (`km + cycle`, `date + months`); overdue if mileage ≥ nextKm OR today ≥ nextDate; soon if <1000 km or <30 days. Dashboard shows earliest upcoming ("za X km ili X dana" + status color).
+- Fuel consumption = liters/(km−prevKm)×100, full-tank → full-tank only; avg-consumption stat; live total in the fuel overlay.
+- Logging fuel/service with km above vehicle mileage auto-bumps the odometer.
+- i18n HR/EN complete (`t()` + `data-i18n`), HR default; consumption always 1 decimal; due-line km/days use plain integers ("za 8000 km").
+- Design: reused v0.1.2 warm palette + `[data-theme="dark"]` overrides, tokens, radius hierarchy, Manrope; stripped dead CSS (log timeline, filter chips, documents, photo viewer, costs chart, deadlines, menu).
+- PWA: viewport-fit=cover + user-scalable=no, apple-mobile-web-app-capable, dynamic theme-color (#F5F2ED/#1A1815), SW cache `autoservis-cache-v2.0.0`, iOS visualViewport overlay fix, safe areas.
+- Version 2.0.0 everywhere: APP_VERSION, version.json, `?v=2.0.0` params, SW cache, UI labels.
+- KEPT untouched: `icons/`, `fonts/`, `.gitignore`.
+- Verified locally: Playwright 390×844 (system Chrome) — 9/9 scenarios pass, zero console errors. See `docs/temp/build-report.md`.
+
 ## v0.1.0 (2026-09-11) — Dnevnik log system
 - **Dnevnik replaces Servisi** (plan §15): tab `tab-log`, view `view-log`, overlay `overlay-log` with `lg-*` fields (type/date/km/description/cost/remindKm/remindMonths).
 - Data model: `services` → `log` with one-time migration on load (service → log entry `{type:'service', km:mileage, description:notes}`, `services` key deleted, migration persisted).

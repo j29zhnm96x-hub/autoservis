@@ -1,14 +1,10 @@
 /* ============================================================
-   AutoServis — styles.css
-   Spec: docs/plan.md sections 2, 3, 4, 9
-   Light warm theme, burnt-orange accent, Manrope.
+   AutoServis — styles.css v2.0.0 (SIMPLE)
+   Warm palette + dark mode (from v0.1.2). Manrope. Radius 6/10/16.
    No gradients, no glassmorphism, no purple, no pill buttons.
-   Class names match index.html + app.js exactly.
    ============================================================ */
 
-/* ------------------------------------------------------------
-   1. Design tokens
-   ------------------------------------------------------------ */
+/* ---- 1. Design tokens ---- */
 :root {
   --bg: #F5F2ED;          /* warm off-white */
   --surface: #FFFFFF;
@@ -29,7 +25,7 @@
   --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
 }
 
-/* Dark theme — warm dark palette (NOT pure black). Applied via data-theme on <html>. */
+/* Warm dark palette (NOT pure black). */
 [data-theme="dark"] {
   --bg: #1A1815;
   --surface: #24211C;
@@ -46,9 +42,11 @@
   --shadow: 0 1px 3px rgba(0,0,0,.4);
 }
 
-/* ------------------------------------------------------------
-   2. Reset & base
-   ------------------------------------------------------------ */
+[data-theme="dark"] .field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B5ADA1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+}
+
+/* ---- 2. Reset & base ---- */
 *, *::before, *::after { box-sizing: border-box; }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -68,31 +66,26 @@ body {
 
 body.body--overlay { overflow: hidden; }
 
-h1, h2, h3, h4, p { margin: 0; }
+h1, h2, h3, p { margin: 0; }
 
 button { font-family: inherit; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 input, select, textarea { font-family: inherit; }
 img { max-width: 100%; display: block; }
 
-/* No text selection on interactive elements + kill double-tap zoom.
-   Covers buttons, tabs, chips, menu rows, clickable list rows, stats,
-   quick actions, overlay close, photo rows, check fields. */
+/* No text selection + no double-tap zoom on interactive elements. */
 .btn,
 .tab,
 .chip,
-.filter-chip,
-.menu__item,
-.log-item,
-.stat,
-.quick-action,
+.table tbody tr,
 .overlay__close,
-.dc-item-photo,
-.dc-preview-remove,
 .field--check,
-.photo-viewer__close,
+.field--check input[type="checkbox"],
+.settings-row .btn,
+.file-label,
+.vh-row,
 .update-banner__reload,
-.confirm-dialog .btn,
-.settings-row .btn {
+.badge,
+.stat {
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
@@ -100,23 +93,12 @@ img { max-width: 100%; display: block; }
 }
 
 ::selection { background: rgba(217,72,15,.18); }
-
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* Dark-mode fixes for elements with hardcoded light-theme colors. */
-[data-theme="dark"] .badge--inspection { color: var(--accent-2); }
-[data-theme="dark"] .badge--fuel { background: rgba(255,255,255,.08); }
-[data-theme="dark"] .field select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B5ADA1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-}
-
-/* ------------------------------------------------------------
-   3. App shell — fixed header, scrollable main, fixed tab bar
-   ------------------------------------------------------------ */
+/* ---- 3. App shell ---- */
 .app-header {
   position: fixed;
-  top: 0;
-  left: 50%;
+  top: 0; left: 50%;
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
@@ -126,8 +108,6 @@ img { max-width: 100%; display: block; }
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
   z-index: 100;
 }
 
@@ -135,7 +115,6 @@ img { max-width: 100%; display: block; }
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.01em;
-  color: var(--text);
 }
 
 .app-main {
@@ -146,8 +125,7 @@ img { max-width: 100%; display: block; }
 
 .tab-bar {
   position: fixed;
-  bottom: 0;
-  left: 50%;
+  bottom: 0; left: 50%;
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
@@ -179,32 +157,40 @@ img { max-width: 100%; display: block; }
 .tab--active::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 50%;
+  top: 0; left: 50%;
   transform: translateX(-50%);
-  width: 28px;
-  height: 3px;
+  width: 28px; height: 3px;
   background: var(--accent);
 }
 
-/* ------------------------------------------------------------
-   4. Views
-   ------------------------------------------------------------ */
+/* ---- 4. Views ---- */
 .view { display: none; }
 .view--active { display: block; }
 
 .view-header {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
-.section { margin-bottom: 20px; }
-.section:last-child { margin-bottom: 0; }
+.empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-3);
+  font-size: 14px;
+}
 
-/* ------------------------------------------------------------
-   5. Buttons
-   ------------------------------------------------------------ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px 16px;
+  gap: 10px;
+  color: var(--text-2);
+}
+
+/* ---- 5. Buttons ---- */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -221,34 +207,21 @@ img { max-width: 100%; display: block; }
 }
 
 .btn:active { transform: scale(.98); }
-.btn:disabled { opacity: .5; cursor: not-allowed; }
 
 .btn--primary { background: var(--accent); color: #fff; }
 .btn--primary:hover { background: color-mix(in srgb, var(--accent), #000 10%); }
 
 .btn--secondary { background: var(--surface-2); color: var(--text); border-color: var(--border); }
-.btn--secondary:hover { background: color-mix(in srgb, var(--surface-2), #000 4%); }
 
 .btn--danger { background: var(--danger); color: #fff; }
 .btn--danger:hover { background: color-mix(in srgb, var(--danger), #000 10%); }
 
-.btn--ghost { background: transparent; color: var(--text-2); border-color: var(--border); }
-.btn--ghost:hover { background: var(--surface-2); }
-
-.btn--danger-text { color: var(--danger); }
-
-.btn--ok { background: rgba(43,138,62,.12); color: var(--ok); }
-.btn--ok:hover { background: rgba(43,138,62,.2); }
-
-.btn--block { width: 100%; }
-
-.btn--small { min-height: 36px; padding: 6px 14px; font-size: 13px; font-weight: 700; }
-
 .btn--active { background: var(--accent); color: #fff; }
+.btn--block { width: 100%; }
+.btn--small { min-height: 36px; padding: 6px 14px; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.btn--icon { min-width: 44px; font-size: 22px; font-weight: 700; padding: 6px 14px; }
 
-/* ------------------------------------------------------------
-   6. Forms
-   ------------------------------------------------------------ */
+/* ---- 6. Forms ---- */
 .field { display: block; margin-bottom: 14px; }
 
 .field__label {
@@ -275,7 +248,7 @@ img { max-width: 100%; display: block; }
   border-radius: var(--radius-sm);
 }
 
-.field textarea { min-height: 88px; resize: vertical; }
+.field textarea { min-height: 72px; resize: vertical; }
 
 .field input:focus,
 .field select:focus,
@@ -310,8 +283,7 @@ img { max-width: 100%; display: block; }
 .field--check input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
-  width: 22px;
-  height: 22px;
+  width: 22px; height: 22px;
   margin: 0;
   border: 2px solid var(--border);
   border-radius: var(--radius-sm);
@@ -329,105 +301,58 @@ img { max-width: 100%; display: block; }
   background-repeat: no-repeat;
 }
 
-.file-input {
-  width: 100%;
-  min-height: 44px;
-  font-size: 14px;
-  color: var(--text-2);
+/* Live total in the fuel overlay. */
+.field-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 12px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
 }
 
-/* ------------------------------------------------------------
-   7. Cards, lists, badges
-   ------------------------------------------------------------ */
-.list { display: flex; flex-direction: column; gap: 10px; }
+.field-total .field__label { margin-bottom: 0; }
+.field-total__value { font-size: 18px; font-weight: 800; }
 
+.file-label { position: relative; overflow: hidden; }
+.file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+/* ---- 7. Cards, chips, stats, badges ---- */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 14px 16px;
   box-shadow: var(--shadow);
+  margin-bottom: 10px;
 }
 
-.card + .card { margin-top: 10px; }
+.card--status { border-left: 4px solid var(--border); }
+.card--ok { border-left-color: var(--ok); }
+.card--soon { border-left-color: var(--warn); }
+.card--overdue { border-left-color: var(--danger); }
 
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.badge--due { background: var(--warn); color: #fff; }
-.badge--ok { background: rgba(43,138,62,.12); color: var(--ok); }
-.badge--neutral { background: var(--surface-2); color: var(--text-2); }
-
-.badge--service { background: rgba(217,72,15,.12); color: var(--accent); }
-.badge--repair { background: rgba(201,42,42,.12); color: var(--danger); }
-.badge--wash { background: rgba(43,138,62,.12); color: var(--ok); }
-.badge--inspection { background: rgba(245,159,0,.16); color: #9A6700; }
-.badge--other { background: var(--surface-2); color: var(--text-2); }
-.badge--fuel { background: rgba(31,29,26,.08); color: var(--text); }
-
-.item-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-
-.item-actions .btn { min-height: 38px; padding: 6px 14px; font-size: 14px; }
-
-/* ------------------------------------------------------------
-   8. Empty states
-   ------------------------------------------------------------ */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 48px 24px;
-  gap: 8px;
-  color: var(--text-2);
-}
-
-.empty-state .btn { margin-top: 8px; }
-
-.empty {
-  text-align: center;
-  padding: 32px 16px;
-  color: var(--text-3);
-  font-size: 14px;
-}
-
-.empty-inline {
-  text-align: center;
-  padding: 12px;
-  color: var(--text-3);
-  font-size: 13px;
-}
-
-/* ------------------------------------------------------------
-   9. Home view
-   ------------------------------------------------------------ */
-.home-vehicle-row {
+.chip-row {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding: 4px 0 8px;
+  padding: 2px 0 10px;
   scrollbar-width: none;
-  margin-bottom: 12px;
 }
-.home-vehicle-row::-webkit-scrollbar { display: none; }
+.chip-row::-webkit-scrollbar { display: none; }
 
 .chip {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
   min-height: 44px;
   padding: 8px 14px;
   border: 1px solid var(--border);
@@ -439,20 +364,14 @@ img { max-width: 100%; display: block; }
   cursor: pointer;
 }
 
-.chip--active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
+.chip--active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-.chip--ok { background: rgba(43,138,62,.1); color: var(--ok); border-color: transparent; }
-.chip--warn { background: rgba(232,89,12,.1); color: var(--warn); border-color: transparent; }
-.chip--danger { background: rgba(201,42,42,.1); color: var(--danger); border-color: transparent; }
-
-.vc-name { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.vc-name { font-size: 18px; font-weight: 700; }
+.vc-sub { font-size: 13px; color: var(--text-2); margin-top: 2px; }
 
 .vc-plate {
   display: inline-block;
+  margin-top: 8px;
   padding: 3px 8px;
   border-radius: 4px;
   background: rgba(217,72,15,.08);
@@ -462,31 +381,38 @@ img { max-width: 100%; display: block; }
   letter-spacing: .03em;
 }
 
+[data-theme="dark"] .vc-plate { background: rgba(240,102,31,.15); }
+
 .vc-mileage { font-size: 13px; color: var(--text-2); margin-top: 8px; }
 
-.home-deadlines {
+.ns-title { font-size: 13px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: .05em; }
+.ns-title--muted { margin-bottom: 6px; }
+.ns-type { font-size: 18px; font-weight: 800; color: var(--accent); margin-top: 4px; }
+.ns-due { font-size: 15px; font-weight: 700; margin-top: 4px; }
+.ns-meta { font-size: 13px; color: var(--text-2); margin-top: 6px; }
+
+.card--overdue .ns-type { color: var(--danger); }
+.card--soon .ns-type { color: var(--warn); }
+
+.lf-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 12px 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-2);
+  margin-top: 4px;
 }
 
-.home-stats,
-.fuel-stats,
-.costs-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 16px;
-}
+.lf-row--strong { font-weight: 700; color: var(--text); }
 
 .stat {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 12px;
+  padding: 12px 14px;
   box-shadow: var(--shadow);
-  min-width: 0;
+  margin-bottom: 12px;
 }
 
 .stat-label {
@@ -497,311 +423,99 @@ img { max-width: 100%; display: block; }
   margin-bottom: 4px;
 }
 
-.stat-value {
-  display: block;
-  font-size: 22px;
-  font-weight: 800;
-  line-height: 1.1;
-  color: var(--text);
-}
+.stat-value { display: block; font-size: 22px; font-weight: 800; line-height: 1.1; }
+.stat-value small { font-size: 13px; font-weight: 700; color: var(--text-2); }
 
-.ns-title { font-size: 18px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
-.ns-detail { font-size: 14px; color: var(--text-2); margin-bottom: 8px; }
-.ns-days { font-size: 13px; font-weight: 700; color: var(--text); }
-
-.quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.quick-actions .btn { min-width: 0; }
-
-/* ------------------------------------------------------------
-   9b. Filter chips (Dnevnik timeline)
-   ------------------------------------------------------------ */
-.filter-chips {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 4px 0 12px;
-  scrollbar-width: none;
-}
-.filter-chips::-webkit-scrollbar { display: none; }
-
-.filter-chip {
-  flex-shrink: 0;
+.badge {
   display: inline-flex;
   align-items: center;
-  min-height: 36px;
-  padding: 6px 14px;
-  border: 1px solid var(--border);
+  padding: 3px 8px;
   border-radius: var(--radius-sm);
-  background: var(--surface);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-2);
-  cursor: pointer;
-}
-
-.filter-chip--active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-/* ------------------------------------------------------------
-   10. Log timeline (Dnevnik)
-   ------------------------------------------------------------ */
-.log-item { border-left: 3px solid var(--border); }
-
-.log-item--service { border-left-color: var(--accent); }
-.log-item--repair { border-left-color: var(--danger); }
-.log-item--wash { border-left-color: var(--ok); }
-.log-item--inspection { border-left-color: var(--accent-2); }
-.log-item--other { border-left-color: var(--text-3); }
-.log-item--fuel { border-left-color: var(--text); }
-
-.log-item-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.log-item-meta {
-  font-size: 13px;
-  color: var(--text-2);
-  margin-top: 4px;
-  line-height: 1.45;
-}
-
-.log-item-desc {
-  font-size: 13px;
-  color: var(--text-2);
-  margin-top: 6px;
-  line-height: 1.45;
-}
-
-.log-item-cost { font-size: 14px; font-weight: 700; color: var(--text); margin-top: 4px; }
-
-.log-item-detail {
-  font-size: 14px;
-  font-weight: 600;
-  margin-top: 6px;
-}
-
-.log-item-cons {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--accent);
-  margin-top: 4px;
+  white-space: nowrap;
 }
 
-.log-item-reminder {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--warn);
-  margin-top: 6px;
-}
+.badge--oil { background: rgba(217,72,15,.12); color: var(--accent); }
+.badge--air-filter { background: rgba(43,138,62,.12); color: var(--ok); }
+.badge--fuel-filter { background: rgba(245,159,0,.16); color: #9A6700; }
+.badge--timing-belt { background: rgba(201,42,42,.12); color: var(--danger); }
+.badge--other { background: var(--surface-2); color: var(--text-2); }
+.badge--ok { background: rgba(43,138,62,.12); color: var(--ok); }
 
-/* ------------------------------------------------------------
-   11. Fuel items
-   ------------------------------------------------------------ */
-.fl-item-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
+[data-theme="dark"] .badge--fuel-filter { color: var(--accent-2); }
 
-.fl-item-meta { font-size: 13px; color: var(--text-2); margin-top: 4px; }
+.quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 2px; }
+.quick-actions .btn { min-width: 0; }
 
-.fl-item-detail {
-  font-size: 14px;
-  font-weight: 600;
-  margin-top: 6px;
-}
-
-.fl-item-cons {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--accent);
-  margin-top: 4px;
-}
-
-/* ------------------------------------------------------------
-   12. Deadline items
-   ------------------------------------------------------------ */
-.dl-item { border-left: 3px solid var(--border); }
-.dl-item--ok { border-left-color: var(--ok); }
-.dl-item--warn { border-left-color: var(--warn); }
-.dl-item--danger { border-left-color: var(--danger); }
-
-.dl-item-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.dl-item-label { font-size: 16px; font-weight: 600; }
-
-.dl-count { font-size: 13px; font-weight: 700; white-space: nowrap; }
-.dl-item--ok .dl-count { color: var(--ok); }
-.dl-item--warn .dl-count { color: var(--warn); }
-.dl-item--danger .dl-count { color: var(--danger); }
-
-.dl-item-meta {
-  font-size: 13px;
-  color: var(--text-2);
-  margin-top: 4px;
-  line-height: 1.45;
-}
-
-.dl-item-notes {
-  font-size: 13px;
-  color: var(--text-2);
-  margin-top: 6px;
-  line-height: 1.45;
-}
-
-/* ------------------------------------------------------------
-   13. Vehicle items
-   ------------------------------------------------------------ */
-.vh-item--active { border-color: var(--accent); }
-
-.vh-item-name { font-size: 16px; font-weight: 600; }
-
-.vh-item-meta {
-  font-size: 13px;
-  color: var(--text-2);
-  margin-top: 4px;
-  line-height: 1.45;
-}
-
-.vh-item-mileage { font-size: 13px; color: var(--text-2); margin-top: 4px; }
-
-/* ------------------------------------------------------------
-   14. Document items
-   ------------------------------------------------------------ */
-.dc-item-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.dc-item-name { font-size: 16px; font-weight: 600; }
-
-.dc-item-type { font-size: 12px; font-weight: 700; color: var(--accent); white-space: nowrap; }
-
-.dc-item-meta {
-  font-size: 13px;
-  color: var(--text-2);
-  margin-top: 4px;
-  line-height: 1.45;
-}
-
-.dc-item-photo {
-  margin-top: 8px;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  background: var(--surface-2);
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  color: var(--text-3);
-  cursor: pointer;
-}
-
-.dc-item-photo img { width: 100%; max-height: 160px; object-fit: cover; }
-
-/* ------------------------------------------------------------
-   15. Costs view
-   ------------------------------------------------------------ */
-.costs-chart {
-  width: 100%;
-  height: 180px;
-  background: var(--surface);
+/* ---- 8. Tables (fuel, services) ---- */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  margin-bottom: 16px;
-}
-
-.costs-chart-svg { width: 100%; height: 100%; display: block; }
-
-.chart-bar { fill: var(--accent); }
-.chart-bar--empty { fill: var(--surface-2); }
-
-.chart-label {
-  font-size: 10px;
-  fill: var(--text-3);
-  font-family: var(--font);
-}
-
-.costs-breakdown {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 4px 16px;
   box-shadow: var(--shadow);
 }
 
-.bd-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.bd-row:last-child { border-bottom: none; }
-
-.bd-label { font-size: 14px; font-weight: 600; }
-.bd-value { font-size: 14px; font-weight: 700; }
-
-/* ------------------------------------------------------------
-   16. More menu & settings
-   ------------------------------------------------------------ */
-.menu {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.menu__item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.table {
   width: 100%;
-  min-height: 52px;
-  padding: 0 16px;
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--border);
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text);
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 340px;
+}
+
+.table th {
   text-align: left;
-  cursor: pointer;
-}
-
-.menu__item:last-child { border-bottom: none; }
-.menu__item:active { background: var(--surface-2); }
-
-.more-version {
-  text-align: center;
   font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
   color: var(--text-3);
-  margin-top: 16px;
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
 }
 
+.table td {
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child td { border-bottom: none; }
+.table tbody tr { cursor: pointer; }
+.table tbody tr:active { background: var(--surface-2); }
+
+.table th:nth-child(1), .table td:nth-child(1) { padding-left: 14px; }
+.table th:last-child, .table td:last-child { padding-right: 14px; }
+
+.td-cons { font-weight: 700; color: var(--accent); }
+.table--services .td-work {
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-2);
+}
+
+.dot-full {
+  display: inline-block;
+  width: 6px; height: 6px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+  vertical-align: middle;
+}
+
+/* ---- 9. Settings ---- */
 .settings-group {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
   margin-bottom: 16px;
+  box-shadow: var(--shadow);
 }
 
 .settings-group__title {
@@ -821,35 +535,29 @@ img { max-width: 100%; display: block; }
   min-height: 52px;
   padding: 10px 16px;
   border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
 }
 
 .settings-row:last-child { border-bottom: none; }
 
-.settings-row--segmented {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  padding: 12px 16px;
-}
+.settings-row--seg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.settings-row--seg3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.settings-row--seg2 .btn, .settings-row--seg3 .btn { min-width: 0; padding: 8px 6px; font-size: 14px; }
 
-.settings-row--segmented .btn { min-width: 0; padding: 8px 6px; font-size: 14px; }
+.vh-row { cursor: pointer; }
+.vh-row:active { background: var(--surface-2); }
+.vh-row--active { border-left: 3px solid var(--accent); padding-left: 13px; }
+.vh-info { min-width: 0; }
+.vh-name { font-size: 16px; font-weight: 700; }
+.vh-meta { font-size: 13px; color: var(--text-2); margin-top: 2px; }
 
 .settings-version {
   text-align: center;
   font-size: 11px;
   color: var(--text-3);
-  margin-top: 16px;
+  padding-bottom: 8px;
 }
 
-.version-label { font-size: 13px; color: var(--text-2); }
-.version-value { font-size: 13px; font-weight: 700; color: var(--text); }
-
-/* ------------------------------------------------------------
-   17. Overlays — full-screen slide-up panels
-   iOS fix: JS sets explicit height on .overlay via
-   visualViewport (inline style overrides inset).
-   ------------------------------------------------------------ */
+/* ---- 10. Overlays — slide-up panels ---- */
 .overlay {
   position: fixed;
   inset: 0;
@@ -861,7 +569,6 @@ img { max-width: 100%; display: block; }
 }
 
 .overlay--open { display: flex; }
-
 .overlay--open .overlay__panel { animation: overlay-slide-up .28s cubic-bezier(.2,.8,.3,1); }
 
 @keyframes overlay-slide-up {
@@ -895,8 +602,7 @@ img { max-width: 100%; display: block; }
 .overlay__title { font-size: 18px; font-weight: 700; }
 
 .overlay__close {
-  width: 44px;
-  height: 44px;
+  width: 44px; height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -927,98 +633,7 @@ img { max-width: 100%; display: block; }
 
 .overlay__footer .btn { flex: 1; min-width: 90px; }
 
-/* ------------------------------------------------------------
-   18. Photo preview + fullscreen viewer
-   ------------------------------------------------------------ */
-.dc-photo-preview { margin-top: 8px; }
-
-.dc-preview {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px;
-  background: var(--surface-2);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-md);
-}
-
-.dc-preview img {
-  width: 96px;
-  height: 96px;
-  border-radius: var(--radius-sm);
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.dc-preview--empty {
-  justify-content: center;
-  min-height: 96px;
-  color: var(--text-3);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.dc-preview-remove {
-  min-height: 44px;
-  padding: 8px 14px;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--danger);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.photo-viewer {
-  position: fixed;
-  inset: 0;
-  z-index: 300;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: #000;
-}
-
-.photo-viewer--open { display: flex; }
-
-.photo-viewer-backdrop { position: absolute; inset: 0; }
-
-.photo-viewer-body {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.photo-viewer-img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.photo-viewer-close {
-  position: absolute;
-  top: calc(12px + var(--safe-top));
-  right: 12px;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: rgba(255,255,255,.14);
-  color: #fff;
-  font-size: 24px;
-  cursor: pointer;
-}
-
-/* ------------------------------------------------------------
-   19. Toast, confirm dialog, update banner
-   ------------------------------------------------------------ */
+/* ---- 11. Toast, confirm, update banner ---- */
 .toast {
   position: fixed;
   left: 50%;
@@ -1044,7 +659,7 @@ img { max-width: 100%; display: block; }
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 
-.confirm-dialog {
+.confirm {
   position: fixed;
   inset: 0;
   z-index: 350;
@@ -1055,11 +670,9 @@ img { max-width: 100%; display: block; }
   background: rgba(31,29,26,.5);
 }
 
-.confirm-dialog--open { display: flex; }
+.confirm--open { display: flex; }
 
-.confirm-backdrop { position: absolute; inset: 0; }
-
-.confirm-panel {
+.confirm__panel {
   position: relative;
   width: 100%;
   max-width: 320px;
@@ -1069,17 +682,17 @@ img { max-width: 100%; display: block; }
   box-shadow: 0 8px 24px rgba(31,29,26,.2);
 }
 
-.confirm-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.confirm__title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
 
-.confirm-text {
+.confirm__text {
   font-size: 14px;
   color: var(--text-2);
   line-height: 1.5;
   margin-bottom: 20px;
 }
 
-.confirm-actions { display: flex; gap: 10px; }
-.confirm-actions .btn { flex: 1; }
+.confirm__actions { display: flex; gap: 10px; }
+.confirm__actions .btn { flex: 1; }
 
 .update-banner {
   position: fixed;
@@ -1089,37 +702,33 @@ img { max-width: 100%; display: block; }
   width: 100%;
   max-width: 480px;
   z-index: 90;
-  display: none;
+  display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 16px;
   background: var(--accent-2);
-  color: var(--text);
+  color: #1F1D1A;
   font-size: 13px;
   font-weight: 600;
 }
 
-.update-banner--show { display: flex; }
+.update-banner[hidden] { display: none; }
+.update-banner__text { flex: 1; }
 
-.update-banner-text { flex: 1; }
-
-#update-banner-reload {
-  margin-left: auto;
+.update-banner__reload {
   min-height: 36px;
   padding: 6px 14px;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--text);
-  color: var(--surface);
+  background: #1F1D1A;
+  color: #fff;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   flex-shrink: 0;
 }
 
-/* ------------------------------------------------------------
-   20. Responsive — designed at 390px, centered shell ≥480px
-   ------------------------------------------------------------ */
+/* ---- 12. Responsive & a11y ---- */
 @media (min-width: 481px) {
   .app-header,
   .tab-bar {
