@@ -1,5 +1,5 @@
 /* ============================================================
-   AutoServis — styles.css v2.1.0 (SIMPLE)
+   AutoServis — styles.css v2.2.0 (SIMPLE)
    Warm palette + dark mode (from v0.1.2). Manrope. Radius 6/10/16.
    No gradients, no glassmorphism, no purple, no pill buttons.
    ============================================================ */
@@ -344,11 +344,6 @@ img { max-width: 100%; display: block; }
   margin-bottom: 10px;
 }
 
-.card--status { border-left: 4px solid var(--border); }
-.card--ok { border-left-color: var(--ok); }
-.card--soon { border-left-color: var(--warn); }
-.card--overdue { border-left-color: var(--danger); }
-
 .chip-row {
   display: flex;
   gap: 8px;
@@ -394,10 +389,10 @@ img { max-width: 100%; display: block; }
 
 .vc-mileage { font-size: 13px; color: var(--text-2); margin-top: 8px; }
 
-/* Deadline countdown chips (reg / technical / insurance) under the vehicle card. */
+/* Deadline countdown chips (technical / insurance) under the big countdown cards. */
 .deadline-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   margin-bottom: 10px;
 }
@@ -446,12 +441,96 @@ img { max-width: 100%; display: block; }
 
 .ns-title { font-size: 13px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: .05em; }
 .ns-title--muted { margin-bottom: 6px; }
-.ns-type { font-size: 18px; font-weight: 800; color: var(--accent); margin-top: 4px; }
-.ns-due { font-size: 15px; font-weight: 700; margin-top: 4px; }
 .ns-meta { font-size: 13px; color: var(--text-2); margin-top: 6px; }
 
-.card--overdue .ns-type { color: var(--danger); }
-.card--soon .ns-type { color: var(--warn); }
+/* Big countdown cards (next service + registration) — side by side. */
+.countdown-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.cd-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 132px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  text-align: left;
+  font-family: inherit;
+}
+
+.cd-card--btn { cursor: pointer; width: 100%; }
+.cd-card--btn:active { background: var(--surface-2); }
+
+.cd-card--ok { border-left-color: var(--ok); }
+.cd-card--soon { border-left-color: var(--accent-2); }
+.cd-card--overdue { border-left-color: var(--danger); }
+
+.cd-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.cd-type {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.cd-num {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-top: 6px;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.cd-num--text { font-size: 20px; }
+
+.cd-card--ok .cd-num { color: var(--ok); }
+.cd-card--soon .cd-num { color: #9A6700; }
+.cd-card--overdue .cd-num { color: var(--danger); }
+
+[data-theme="dark"] .cd-card--soon .cd-num { color: var(--accent-2); }
+
+.cd-unit {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+  margin-top: 1px;
+}
+
+.cd-meta {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: auto;
+  padding-top: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
 
 .lf-row {
   display: flex;
@@ -565,6 +644,174 @@ img { max-width: 100%; display: block; }
   border-radius: 50%;
   background: var(--ok);
   vertical-align: middle;
+}
+
+/* ---- 8b. Costs view ---- */
+.costs-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.cost-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+  min-width: 0;
+}
+
+.cost-card__label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cost-card__value {
+  display: block;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.15;
+  margin-top: 4px;
+}
+
+.costs-cats {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 4px 14px;
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+}
+
+.cost-cat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.cost-cat:last-child { border-bottom: none; }
+
+.cost-cat__label { font-size: 14px; font-weight: 600; color: var(--text-2); }
+
+.cost-cat__value { font-size: 15px; font-weight: 800; }
+.cost-cat__value--fuel { color: var(--accent); }
+.cost-cat__value--svc { color: var(--ok); }
+
+.table--costs .td-total { font-weight: 800; color: var(--text); }
+
+/* ---- 8c. Notes (home scratchpad) ---- */
+.notes-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+  margin-top: 12px;
+  margin-bottom: 10px;
+}
+
+.notes__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.notes__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.notes__add-btn {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.notes__list { display: flex; flex-direction: column; gap: 6px; }
+
+.notes__empty {
+  font-size: 13px;
+  color: var(--text-3);
+  padding: 6px 0 4px;
+}
+
+.note {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.note:active { background: var(--border); }
+
+.note__date {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-3);
+  letter-spacing: .03em;
+}
+
+.note__text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.notes__add {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.notes__add[hidden] { display: none; }
+
+.notes__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.notes__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(217,72,15,.12);
 }
 
 /* ---- 9. Settings ---- */

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   AutoServis — app.js v2.1.0 (SIMPLE)
+   AutoServis — app.js v2.2.0 (SIMPLE)
    Fuel log + service log + auto-reminders for a few cars. Vanilla JS.
    Contract: docs/plan.md. DOM IDs match index.html verbatim.
    ========================================================================== */
@@ -7,7 +7,7 @@
 'use strict';
 
 // ==== CONFIG ====
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.2.0';
 const STORAGE_KEY = 'autoservis_data';
 
 const SERVICE_TYPES = ['oil', 'air-filter', 'fuel-filter', 'timing-belt', 'other'];
@@ -37,6 +37,7 @@ const I18N = {
     tabHome: 'Početna',
     tabFuel: 'Gorivo',
     tabServices: 'Servisi',
+    tabCosts: 'Troškovi',
     tabSettings: 'Postavke',
     addFuel: 'Dodaj gorivo',
     addService: 'Dodaj servis',
@@ -139,13 +140,28 @@ const I18N = {
     reload: 'Učitaj ponovo',
     kmUnit: 'km',
     lPer100: 'l/100km',
-    currency: '€'
+    currency: '€',
+    thisMonth: 'Ovaj mjesec',
+    lastMonth: 'Prošli mjesec',
+    monthlyAverage: 'Prosječno mjesečno',
+    thisYear: 'Ova godina',
+    fuelTotal: 'Gorivo',
+    servicesTotal: 'Servisi',
+    noCostsData: 'Nema podataka o troškovima',
+    month: 'Mjesec',
+    unitDays: 'dana',
+    notesHeader: 'Bilješke',
+    addNote: 'Dodaj bilješku',
+    notePlaceholder: 'Nova bilješka…',
+    noNotes: 'Nema bilješki',
+    deleteNote: 'Obrisati ovu bilješku?'
   },
   en: {
     appName: 'AutoServis',
     tabHome: 'Home',
     tabFuel: 'Fuel',
     tabServices: 'Services',
+    tabCosts: 'Costs',
     tabSettings: 'Settings',
     addFuel: 'Add fuel',
     addService: 'Add service',
@@ -248,8 +264,30 @@ const I18N = {
     reload: 'Reload',
     kmUnit: 'km',
     lPer100: 'l/100km',
-    currency: '€'
+    currency: '€',
+    thisMonth: 'This month',
+    lastMonth: 'Last month',
+    monthlyAverage: 'Monthly average',
+    thisYear: 'This year',
+    fuelTotal: 'Fuel',
+    servicesTotal: 'Services',
+    noCostsData: 'No cost data',
+    month: 'Month',
+    unitDays: 'days',
+    notesHeader: 'Notes',
+    addNote: 'Add note',
+    notePlaceholder: 'New note…',
+    noNotes: 'No notes',
+    deleteNote: 'Delete this note?'
   }
+};
+
+/* Localized month names for the costs table ("Siječanj 2026" / "January 2026"). */
+const MONTH_NAMES = {
+  hr: ['Siječanj', 'Veljača', 'Ožujak', 'Travanj', 'Svibanj', 'Lipanj',
+       'Srpanj', 'Kolovoz', 'Rujan', 'Listopad', 'Studeni', 'Prosinac'],
+  en: ['January', 'February', 'March', 'April', 'May', 'June',
+       'July', 'August', 'September', 'October', 'November', 'December']
 };
 
 // ==== STATE ====
@@ -354,6 +392,15 @@ function fmtMoney(n) {
   return (Number(n) || 0).toLocaleString(locale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + t('currency');
 }
 
+/* "Siječanj 2026" / "January 2026" from a "YYYY-MM" key. */
+function fmtMonthLabel(ym) {
+  const lang = (state.data && state.data.settings && state.data.settings.lang) || 'hr';
+  const names = MONTH_NAMES[lang] || MONTH_NAMES.hr;
+  const m = /^(\d{4})-(\d{2})$/.exec(ym);
+  if (!m) return ym;
+  return names[+m[2] - 1] + ' ' + m[1];
+}
+
 // ==== STORAGE & MIGRATION ====
 function defaultData() {
   return {
@@ -362,7 +409,8 @@ function defaultData() {
     activeVehicleId: null,
     vehicles: [],
     fuel: [],
-    services: []
+    services: [],
+    notes: []
   };
 }
 
@@ -401,6 +449,12 @@ function normalizeV2(raw) {
       id: s.id || uid(), vehicleId: s.vehicleId || '', type: SERVICE_TYPES.indexOf(s.type) !== -1 ? s.type : 'other',
       date: s.date || '', km: Number(s.km) || 0, work: s.work || '', parts: s.parts || '',
       notes: s.notes || '', cost: Number(s.cost) || 0, createdAt: s.createdAt || new Date().toISOString()
+    };
+  });
+  d.notes = (Array.isArray(raw.notes) ? raw.notes : []).map(function (n) {
+    return {
+      id: n.id || uid(), vehicleId: n.vehicleId || '', text: n.text || '',
+      createdAt: n.createdAt || new Date().toISOString()
     };
   });
   return d;
@@ -640,6 +694,9 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n]').forEach(function (el) {
     el.textContent = t(el.getAttribute('data-i18n'));
   });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
+    el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder')));
+  });
 }
 
 // ==== I18N FOR DYNAMIC SELECT OPTIONS ====
@@ -654,11 +711,12 @@ const VIEW_RENDERERS = {
   home: renderHome,
   fuel: renderFuel,
   services: renderServices,
+  costs: renderCosts,
   settings: renderSettings
 };
 
-const VIEW_MAP = { home: 'view-home', fuel: 'view-fuel', services: 'view-services', settings: 'view-settings' };
-const TAB_MAP = { home: 'tab-home', fuel: 'tab-fuel', services: 'tab-services', settings: 'tab-settings' };
+const VIEW_MAP = { home: 'view-home', fuel: 'view-fuel', services: 'view-services', costs: 'view-costs', settings: 'view-settings' };
+const TAB_MAP = { home: 'tab-home', fuel: 'tab-fuel', services: 'tab-services', costs: 'tab-costs', settings: 'tab-settings' };
 
 function showView(id) {
   state.currentView = id;
@@ -702,11 +760,11 @@ function closeOverlay(id) {
 }
 
 // ==== VIEW: HOME ====
-/* 3 deadline countdown chips (reg/tech/insurance) for a vehicle.
+/* 2 smaller deadline countdown chips (technical / insurance) under the two big
+   cards. regExpiry has its own big card since v2.2.0.
    green >30 days, amber 7–30, red <7 or expired, gray "—" when not set. */
 function deadlineChipsHTML(vehicle) {
   const defs = [
-    { key: 'regExpiry', label: t('reg') },
     { key: 'techExpiry', label: t('tech') },
     { key: 'insExpiry', label: t('insurance') }
   ];
@@ -728,11 +786,107 @@ function deadlineChipsHTML(vehicle) {
   }).join('');
 }
 
+/* Big countdown card #1 — earliest upcoming service (km or days driver). */
+function nextServiceCardHTML(vehicle) {
+  const ns = nextServiceFor(vehicle);
+  let cls = 'cd-card';
+  let big, unit, meta = '';
+  if (ns) {
+    cls += ' cd-card--' + ns.status;
+    if (ns.status === 'overdue') {
+      big = esc(t('overdue'));
+      unit = '';
+    } else {
+      const kmFirst = (ns.kmRemaining / 1000) <= (ns.daysRemaining / 30);
+      big = esc(plainInt(kmFirst ? ns.kmRemaining : ns.daysRemaining));
+      unit = esc(kmFirst ? t('kmUnit') : t('unitDays'));
+    }
+    meta = esc(t('lastService')) + ': ' + fmtDate(ns.last.date);
+  } else {
+    big = esc(t('notSet'));
+    unit = '';
+    meta = esc(t('noNextService'));
+  }
+  const typeLine = ns ? '<div class="cd-type">' + esc(svcTypeLabel(ns.type)) + '</div>' : '';
+  return '<div class="' + cls + '" id="cd-service">' +
+    '<div class="cd-label">' + esc(t('nextService')) + '</div>' + typeLine +
+    '<div class="cd-num' + (ns && ns.status === 'overdue' ? ' cd-num--text' : '') + '">' + big + '</div>' +
+    (unit ? '<div class="cd-unit">' + unit + '</div>' : '') +
+    (meta ? '<div class="cd-meta">' + meta + '</div>' : '') +
+    '</div>';
+}
+
+/* Big countdown card #2 — registration expiry. green >30, amber 7–30, red <7/expired. */
+function regCardHTML(vehicle) {
+  const iso = vehicle.regExpiry;
+  let cls = 'cd-card';
+  let big = esc(t('notSet'));
+  let unit = '';
+  let meta = '';
+  if (iso) {
+    const days = daysBetween(todayISO(), iso);
+    if (days <= 0) { cls += ' cd-card--overdue'; big = esc(t('expired')); }
+    else if (days > 30) { cls += ' cd-card--ok'; big = esc(plainInt(days)); unit = esc(t('unitDays')); }
+    else if (days >= 7) { cls += ' cd-card--soon'; big = esc(plainInt(days)); unit = esc(t('unitDays')); }
+    else { cls += ' cd-card--overdue'; big = esc(plainInt(days)); unit = esc(t('unitDays')); }
+    meta = fmtDate(iso);
+  }
+  return '<button type="button" class="' + cls + ' cd-card--btn" id="cd-reg" data-action="edit-vehicle" data-id="' + esc(vehicle.id) + '">' +
+    '<div class="cd-label">' + esc(t('reg')) + '</div>' +
+    '<div class="cd-num' + (unit === '' ? ' cd-num--text' : '') + '">' + big + '</div>' +
+    (unit ? '<div class="cd-unit">' + unit + '</div>' : '') +
+    (meta ? '<div class="cd-meta">' + esc(meta) + '</div>' : '') +
+    '</button>';
+}
+
+/* Notes (per-vehicle scratchpad) — newest first by createdAt. */
+function renderNotes() {
+  const listEl = byId('notes-list');
+  if (!listEl) return;
+  const id = state.data.activeVehicleId;
+  const notes = state.data.notes
+    .filter(function (n) { return n.vehicleId === id; })
+    .slice()
+    .sort(function (a, b) { return (b.createdAt || '').localeCompare(a.createdAt || ''); });
+  if (!notes.length) {
+    listEl.innerHTML = '<div class="notes__empty">' + esc(t('noNotes')) + '</div>';
+    return;
+  }
+  listEl.innerHTML = notes.map(function (n) {
+    return '<button type="button" class="note" data-action="delete-note" data-id="' + esc(n.id) + '">' +
+      '<span class="note__date">' + fmtDate(n.createdAt) + '</span>' +
+      '<span class="note__text">' + esc(n.text) + '</span>' +
+      '</button>';
+  }).join('');
+}
+
+function saveNote() {
+  const vehicle = requireActiveVehicle();
+  if (!vehicle) return;
+  const input = byId('notes-input');
+  const text = (input.value || '').trim();
+  if (!text) return;
+  state.data.notes.push({ id: uid(), vehicleId: vehicle.id, text: text, createdAt: new Date().toISOString() });
+  saveData();
+  input.value = '';
+  renderNotes();
+  toast(t('saved'));
+}
+
+async function deleteNote(id) {
+  const ok = await confirmDialog({ title: t('delete'), text: t('deleteNote') });
+  if (!ok) return;
+  state.data.notes = state.data.notes.filter(function (n) { return n.id !== id; });
+  saveData();
+  renderNotes();
+  toast(t('deleted'));
+}
+
 function renderHome() {
   const chips = byId('home-chips');
   const card = byId('home-vehicle');
+  const countdowns = byId('home-countdowns');
   const deadlines = byId('home-deadlines');
-  const next = byId('home-next');
   const lastFuel = byId('home-last-fuel');
   const vehicles = state.data.vehicles;
 
@@ -740,9 +894,11 @@ function renderHome() {
     chips.innerHTML = '';
     card.innerHTML = '<div class="empty-state"><p>' + esc(t('noVehicles')) + '</p>' +
       '<button type="button" class="btn btn--primary" data-action="add-vehicle">' + esc(t('addVehicle')) + '</button></div>';
+    countdowns.innerHTML = '';
     deadlines.innerHTML = '';
-    next.innerHTML = '';
     lastFuel.innerHTML = '';
+    const notesList = byId('notes-list');
+    if (notesList) notesList.innerHTML = '';
     return;
   }
 
@@ -761,29 +917,8 @@ function renderHome() {
     (active.plate ? '<div class="vc-plate">' + esc(active.plate) + '</div>' : '') +
     '<div class="vc-mileage">' + fmtKm(active.mileage) + '</div>';
 
+  countdowns.innerHTML = nextServiceCardHTML(active) + regCardHTML(active);
   deadlines.innerHTML = deadlineChipsHTML(active);
-
-  const ns = nextServiceFor(active);
-  next.classList.remove('card--ok', 'card--soon', 'card--overdue');
-  if (ns) {
-    next.classList.add('card--' + ns.status);
-    let dueLine;
-    if (ns.status === 'overdue') {
-      dueLine = esc(t('overdue'));
-    } else {
-      dueLine = esc(t('forKm', { km: plainInt(ns.kmRemaining) })) +
-        ' ' + esc(t('or')) + ' ' + esc(t('forDays', { days: plainInt(ns.daysRemaining) }));
-      if (ns.status === 'soon') dueLine = esc(t('soon')) + ' · ' + dueLine;
-    }
-    next.innerHTML =
-      '<div class="ns-title">' + esc(t('nextService')) + '</div>' +
-      '<div class="ns-type">' + esc(svcTypeLabel(ns.type)) + '</div>' +
-      '<div class="ns-due">' + dueLine + '</div>' +
-      '<div class="ns-meta">' + esc(t('lastService')) + ': ' + fmtDate(ns.last.date) + '</div>';
-  } else {
-    next.innerHTML = '<div class="ns-title">' + esc(t('nextService')) + '</div>' +
-      '<div class="ns-meta">' + esc(t('noNextService')) + '</div>';
-  }
 
   const fuel = sortNewest(filterByVehicle(state.data.fuel));
   if (fuel.length) {
@@ -798,6 +933,8 @@ function renderHome() {
     lastFuel.innerHTML = '<div class="ns-title ns-title--muted">' + esc(t('lastFuel')) + '</div>' +
       '<div class="ns-meta">' + esc(t('noFuel')) + '</div>';
   }
+
+  renderNotes();
 }
 
 // ==== VIEW: FUEL ====
@@ -1001,6 +1138,102 @@ async function deleteService(id) {
   toast(t('deleted'));
 }
 
+// ==== VIEW: COSTS ====
+/* All costs DERIVED from existing entries (fuel: liters×pricePerLiter, services: cost).
+   No new storage. Per active vehicle. */
+function costsByMonth(vehicleId) {
+  const map = new Map(); // "YYYY-MM" -> { fuel, services }
+  function bucket(ym) {
+    if (!map.has(ym)) map.set(ym, { fuel: 0, services: 0 });
+    return map.get(ym);
+  }
+  state.data.fuel.forEach(function (f) {
+    if (f.vehicleId !== vehicleId || !f.date) return;
+    bucket(f.date.slice(0, 7)).fuel += (Number(f.liters) || 0) * (Number(f.pricePerLiter) || 0);
+  });
+  state.data.services.forEach(function (s) {
+    if (s.vehicleId !== vehicleId || !s.date) return;
+    bucket(s.date.slice(0, 7)).services += Number(s.cost) || 0;
+  });
+  // Drop months where nothing was spent (e.g. zero-cost entries) — they are not
+  // "months with entries" for the average and would only clutter the table.
+  Array.from(map.keys()).forEach(function (ym) {
+    const v = map.get(ym);
+    if (!v.fuel && !v.services) map.delete(ym);
+  });
+  return map;
+}
+
+function renderCosts() {
+  const summary = byId('costs-summary');
+  const cats = byId('costs-cats');
+  const rows = byId('costs-rows');
+  const empty = byId('costs-empty');
+  const tableWrap = byId('costs-table-wrap');
+  const vehicle = getActiveVehicle();
+
+  if (!vehicle) {
+    summary.innerHTML = '';
+    cats.innerHTML = '';
+    rows.innerHTML = '';
+    tableWrap.hidden = true;
+    empty.hidden = false;
+    empty.textContent = state.data.vehicles.length ? t('noActiveVehicle') : t('noVehicles');
+    return;
+  }
+
+  const map = costsByMonth(vehicle.id);
+  const now = new Date();
+  const thisYM = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  const lastD = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastYM = lastD.getFullYear() + '-' + String(lastD.getMonth() + 1).padStart(2, '0');
+  const thisYear = String(now.getFullYear());
+
+  let totalFuel = 0, totalServices = 0;
+  let thisMonthTotal = 0, lastMonthTotal = 0, thisYearTotal = 0;
+  map.forEach(function (v, ym) {
+    const sum = v.fuel + v.services;
+    totalFuel += v.fuel;
+    totalServices += v.services;
+    if (ym === thisYM) thisMonthTotal += sum;
+    if (ym === lastYM) lastMonthTotal += sum;
+    if (ym.slice(0, 4) === thisYear) thisYearTotal += sum;
+  });
+  const monthCount = map.size;
+  const avg = monthCount ? (totalFuel + totalServices) / monthCount : 0;
+
+  const cards = [
+    { label: t('thisMonth'), value: thisMonthTotal },
+    { label: t('lastMonth'), value: lastMonthTotal },
+    { label: t('monthlyAverage'), value: avg },
+    { label: t('thisYear'), value: thisYearTotal }
+  ];
+  summary.innerHTML = cards.map(function (c) {
+    return '<div class="cost-card"><span class="cost-card__label">' + esc(c.label) + '</span>' +
+      '<span class="cost-card__value">' + fmtMoney(c.value) + '</span></div>';
+  }).join('');
+
+  cats.innerHTML =
+    '<div class="cost-cat"><span class="cost-cat__label">' + esc(t('fuelTotal')) + '</span>' +
+    '<span class="cost-cat__value cost-cat__value--fuel">' + fmtMoney(totalFuel) + '</span></div>' +
+    '<div class="cost-cat"><span class="cost-cat__label">' + esc(t('servicesTotal')) + '</span>' +
+    '<span class="cost-cat__value cost-cat__value--svc">' + fmtMoney(totalServices) + '</span></div>';
+
+  const yms = Array.from(map.keys()).sort().reverse(); // newest month first
+  empty.hidden = yms.length > 0;
+  empty.textContent = t('noCostsData');
+  tableWrap.hidden = yms.length === 0;
+  rows.innerHTML = yms.map(function (ym) {
+    const v = map.get(ym);
+    return '<tr>' +
+      '<td>' + esc(fmtMonthLabel(ym)) + '</td>' +
+      '<td>' + fmtMoney(v.fuel) + '</td>' +
+      '<td>' + fmtMoney(v.services) + '</td>' +
+      '<td class="td-total">' + fmtMoney(v.fuel + v.services) + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
 // ==== VIEW: SETTINGS ====
 function renderSettings() {
   const list = byId('settings-vehicles');
@@ -1099,6 +1332,7 @@ async function deleteVehicle(id) {
   state.data.vehicles = state.data.vehicles.filter(function (x) { return x.id !== recId; });
   state.data.fuel = state.data.fuel.filter(function (x) { return x.vehicleId !== recId; });
   state.data.services = state.data.services.filter(function (x) { return x.vehicleId !== recId; });
+  state.data.notes = state.data.notes.filter(function (x) { return x.vehicleId !== recId; });
   if (state.data.activeVehicleId === recId) state.data.activeVehicleId = null;
   ensureActiveVehicle();
   saveData();
@@ -1200,7 +1434,19 @@ function bindEvents() {
   byId('tab-home').addEventListener('click', function () { showView('home'); });
   byId('tab-fuel').addEventListener('click', function () { showView('fuel'); });
   byId('tab-services').addEventListener('click', function () { showView('services'); });
+  byId('tab-costs').addEventListener('click', function () { showView('costs'); });
   byId('tab-settings').addEventListener('click', function () { showView('settings'); });
+
+  // Notes (home scratchpad)
+  byId('notes-add-btn').addEventListener('click', function () {
+    const add = byId('notes-add');
+    add.hidden = !add.hidden;
+    if (!add.hidden) byId('notes-input').focus();
+  });
+  byId('notes-save').addEventListener('click', saveNote);
+  byId('notes-input').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') saveNote();
+  });
 
   // Quick-add + table "+" buttons
   byId('btn-quick-fuel').addEventListener('click', function () { openFuelOverlay(null); });
@@ -1263,6 +1509,7 @@ function bindEvents() {
     else if (action === 'edit-service') openServiceOverlay(id);
     else if (action === 'edit-vehicle') openVehicleOverlay(id);
     else if (action === 'add-vehicle') openVehicleOverlay(null);
+    else if (action === 'delete-note') deleteNote(id);
   });
 
   // Update banner

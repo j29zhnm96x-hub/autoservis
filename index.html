@@ -25,9 +25,9 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="/styles.css?v=2.1.0">
-  <link rel="stylesheet" href="/fonts.css?v=2.1.0">
-  <script src="/app.js?v=2.1.0" defer></script>
+  <link rel="stylesheet" href="/styles.css?v=2.2.0">
+  <link rel="stylesheet" href="/fonts.css?v=2.2.0">
+  <script src="/app.js?v=2.2.0" defer></script>
 </head>
 <body>
   <header class="app-header">
@@ -40,13 +40,24 @@
     <section class="view view--active" id="view-home">
       <div class="chip-row" id="home-chips"></div>
       <div class="card" id="home-vehicle"></div>
+      <div class="countdown-grid" id="home-countdowns"></div>
       <div class="deadline-row" id="home-deadlines"></div>
-      <div class="card card--status" id="home-next"></div>
       <div class="card" id="home-last-fuel"></div>
       <div class="quick-actions">
         <button class="btn btn--primary" id="btn-quick-fuel" data-i18n="addFuel">Dodaj gorivo</button>
         <button class="btn btn--primary" id="btn-quick-service" data-i18n="addService">Dodaj servis</button>
       </div>
+      <section class="notes-section" id="home-notes">
+        <div class="notes__header">
+          <h3 class="notes__title" data-i18n="notesHeader">Bilješke</h3>
+          <button type="button" class="btn btn--small notes__add-btn" id="notes-add-btn" aria-label="Add note">+</button>
+        </div>
+        <div class="notes__list" id="notes-list"></div>
+        <div class="notes__add" id="notes-add" hidden>
+          <input type="text" class="notes__input" id="notes-input" data-i18n-placeholder="notePlaceholder" placeholder="Nova bilješka…">
+          <button type="button" class="btn btn--primary btn--small" id="notes-save" data-i18n="save">Spremi</button>
+        </div>
+      </section>
     </section>
 
     <!-- ============ VIEW: FUEL ============ -->
@@ -94,6 +105,26 @@
       <div class="empty" id="services-empty" data-i18n="noServices">Nema unosa servisa</div>
     </section>
 
+    <!-- ============ VIEW: COSTS ============ -->
+    <section class="view" id="view-costs">
+      <div class="costs-summary" id="costs-summary"></div>
+      <div class="costs-cats" id="costs-cats"></div>
+      <div class="table-wrap" id="costs-table-wrap">
+        <table class="table table--costs" id="costs-table">
+          <thead>
+            <tr>
+              <th data-i18n="month">Mjesec</th>
+              <th data-i18n="fuelTotal">Gorivo</th>
+              <th data-i18n="servicesTotal">Servisi</th>
+              <th data-i18n="total">Ukupno</th>
+            </tr>
+          </thead>
+          <tbody id="costs-rows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="costs-empty" hidden></div>
+    </section>
+
     <!-- ============ VIEW: SETTINGS ============ -->
     <section class="view" id="view-settings">
       <div class="settings-group">
@@ -138,7 +169,7 @@
           <button class="btn btn--secondary btn--block" id="btn-check-update" data-i18n="checkForUpdate">Provjeri ažuriranje</button>
         </div>
       </div>
-      <div class="settings-version" id="set-version">v2.1.0</div>
+      <div class="settings-version" id="set-version">v2.2.0</div>
     </section>
 
   </main>
@@ -148,6 +179,7 @@
     <button class="tab tab--active" id="tab-home" data-i18n="tabHome">Početna</button>
     <button class="tab" id="tab-fuel" data-i18n="tabFuel">Gorivo</button>
     <button class="tab" id="tab-services" data-i18n="tabServices">Servisi</button>
+    <button class="tab" id="tab-costs" data-i18n="tabCosts">Troškovi</button>
     <button class="tab" id="tab-settings" data-i18n="tabSettings">Postavke</button>
   </nav>
 
