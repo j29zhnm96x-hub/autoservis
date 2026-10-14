@@ -1,5 +1,5 @@
 /* ==========================================================================
-   AutoServis — app.js v2.2.0 (SIMPLE)
+   AutoServis — app.js v2.3.0 (SIMPLE)
    Fuel log + service log + auto-reminders for a few cars. Vanilla JS.
    Contract: docs/plan.md. DOM IDs match index.html verbatim.
    ========================================================================== */
@@ -7,10 +7,48 @@
 'use strict';
 
 // ==== CONFIG ====
-const APP_VERSION = '2.2.0';
+const APP_VERSION = '2.3.0';
 const STORAGE_KEY = 'autoservis_data';
 
 const SERVICE_TYPES = ['oil', 'air-filter', 'fuel-filter', 'timing-belt', 'other'];
+
+/* Vehicle type keys (vehicle.name stores the localized label, or custom text). */
+const VEHICLE_TYPES = ['personal', 'utility', 'van', 'truck', 'motorcycle', 'custom'];
+
+/* Fuel type keys (vehicle.fuelType stores the key: 'petrol' | 'diesel' | ...). */
+const FUEL_TYPES = ['petrol', 'diesel', 'hybrid', 'electric', 'lpg', 'other'];
+
+/* Top Croatian-market brands + "Ostalo". */
+const BRANDS = [
+  'Volkswagen', 'Škoda', 'Opel', 'Peugeot', 'Renault', 'Hyundai', 'Kia', 'Ford',
+  'Toyota', 'Audi', 'BMW', 'Mercedes-Benz', 'Citroën', 'Fiat', 'Dacia', 'Suzuki',
+  'Nissan', 'Seat', 'Mazda', 'Honda', 'Ostalo'
+];
+
+/* Common models per brand (~8–12). Brands not listed here, or "Ostalo",
+   get a free-text model field. */
+const BRAND_MODELS = {
+  'Volkswagen':    ['Golf', 'Polo', 'Passat', 'Tiguan', 'Caddy', 'Transporter', 'T-Roc', 'Touareg', 'Arteon', 'ID.4', 'Up!', 'Amarok'],
+  'Škoda':         ['Octavia', 'Fabia', 'Superb', 'Kamiq', 'Karoq', 'Kodiaq', 'Rapid', 'Yeti', 'Scala', 'Enyaq'],
+  'Opel':          ['Corsa', 'Astra', 'Insignia', 'Mokka', 'Grandland', 'Zafira', 'Combo', 'Vivaro', 'Adam', 'Crossland'],
+  'Peugeot':       ['208', '308', '2008', '3008', '5008', 'Partner', 'Boxer', 'Expert', '301', '408', 'Rifter'],
+  'Renault':       ['Clio', 'Megane', 'Captur', 'Kangoo', 'Trafic', 'Master', 'Scenic', 'Symbol', 'Talisman', 'Zoe'],
+  'Hyundai':       ['i10', 'i20', 'i30', 'Tucson', 'Santa Fe', 'Kona', 'Accent', 'Elantra', 'Ioniq', 'Bayon'],
+  'Kia':           ['Picanto', 'Rio', 'Ceed', 'Sportage', 'Sorento', 'Stonic', 'Soul', 'Niro', 'EV6', 'Cerato'],
+  'Ford':          ['Fiesta', 'Focus', 'Mondeo', 'Kuga', 'Puma', 'EcoSport', 'Transit', 'Ranger', 'Galaxy', 'S-MAX'],
+  'Toyota':        ['Yaris', 'Corolla', 'Camry', 'RAV4', 'Hilux', 'Land Cruiser', 'Aygo', 'C-HR', 'Prius', 'Proace'],
+  'Audi':          ['A3', 'A4', 'A5', 'A6', 'A8', 'Q2', 'Q3', 'Q5', 'Q7', 'Q8', 'e-tron'],
+  'BMW':           ['1', '2', '3', '4', '5', '7', 'X1', 'X3', 'X5', 'X6', 'i4', 'iX'],
+  'Mercedes-Benz': ['A-klasa', 'B-klasa', 'C-klasa', 'E-klasa', 'S-klasa', 'CLA', 'GLA', 'GLC', 'GLE', 'Vito', 'Sprinter'],
+  'Citroën':       ['C1', 'C3', 'C4', 'C5', 'Berlingo', 'Jumpy', 'Jumper', 'C-Elysée', 'C3 Aircross', 'C5 Aircross'],
+  'Fiat':          ['Panda', '500', 'Punto', 'Tipo', 'Doblo', 'Fiorino', 'Ducato', 'Bravo', 'Linea', 'Sedici'],
+  'Dacia':         ['Sandero', 'Logan', 'Duster', 'Lodgy', 'Dokker', 'Spring', 'Sandero Stepway'],
+  'Suzuki':        ['Swift', 'Celerio', 'Ignis', 'Vitara', 'S-Cross', 'Jimny', 'Baleno', 'SX4', 'Across'],
+  'Nissan':        ['Micra', 'Qashqai', 'Juke', 'X-Trail', 'Navara', 'Note', 'Leaf', 'Patrol', 'Pathfinder'],
+  'Seat':          ['Ibiza', 'Leon', 'Arona', 'Ateca', 'Toledo', 'Alhambra', 'Tarraco', 'Arosa'],
+  'Mazda':         ['2', '3', '6', 'CX-3', 'CX-30', 'CX-5', 'CX-60', 'CX-9', 'MX-5', 'BT-50'],
+  'Honda':         ['Civic', 'Jazz', 'CR-V', 'HR-V', 'Accord', 'City', 'Pilot', 'FR-V']
+};
 
 /* Fixed service cycles — the CORE of the auto-reminders. */
 const CYCLES = {
@@ -91,11 +129,31 @@ const I18N = {
     year: 'Godina',
     plate: 'Registracija',
     reg: 'Registracija',
-    tech: 'Tehnički',
-    insurance: 'Osiguranje',
     regExpiry: 'Registracija do',
-    techExpiry: 'Tehnički pregled do',
-    insExpiry: 'Osiguranje do',
+    vehicleTypes: {
+      personal: 'Osobno vozilo',
+      utility: 'Teretno vozilo',
+      van: 'Kombi',
+      truck: 'Kamion',
+      motorcycle: 'Motor',
+      custom: 'Drugo'
+    },
+    fuelTypes: {
+      petrol: 'Benzin',
+      diesel: 'Dizel',
+      hybrid: 'Hibrid',
+      electric: 'Električni',
+      lpg: 'LPG',
+      other: 'Drugo'
+    },
+    brand: 'Marka',
+    engine: 'Motor',
+    vin: 'VIN',
+    fuelType: 'Gorivo',
+    customName: 'Naziv (po izboru)',
+    customMake: 'Marka (po izboru)',
+    customModel: 'Model (po izboru)',
+    otherOption: 'Ostalo',
     daysLeft: '{days} dana',
     expired: 'isteklo',
     notSet: '—',
@@ -215,11 +273,31 @@ const I18N = {
     year: 'Year',
     plate: 'Plate',
     reg: 'Registration',
-    tech: 'Technical',
-    insurance: 'Insurance',
     regExpiry: 'Registration until',
-    techExpiry: 'Technical inspection until',
-    insExpiry: 'Insurance until',
+    vehicleTypes: {
+      personal: 'Personal vehicle',
+      utility: 'Utility vehicle',
+      van: 'Van',
+      truck: 'Truck',
+      motorcycle: 'Motorcycle',
+      custom: 'Other'
+    },
+    fuelTypes: {
+      petrol: 'Petrol',
+      diesel: 'Diesel',
+      hybrid: 'Hybrid',
+      electric: 'Electric',
+      lpg: 'LPG',
+      other: 'Other'
+    },
+    brand: 'Brand',
+    engine: 'Engine',
+    vin: 'VIN',
+    fuelType: 'Fuel',
+    customName: 'Custom name',
+    customMake: 'Custom make',
+    customModel: 'Custom model',
+    otherOption: 'Other',
     daysLeft: '{days} days',
     expired: 'expired',
     notSet: '—',
@@ -419,6 +497,28 @@ function normDateStr(val) {
   return (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val)) ? val : null;
 }
 
+/* v2.3.0 vehicle migration: single regExpiry replaces reg/tech/insurance dates.
+   If regExpiry is missing, it is filled from the EARLIEST of techExpiry/insExpiry.
+   techExpiry/insExpiry are then dropped from the active model (data ignored). */
+function migrateVehicleReg(v) {
+  const reg = normDateStr(v.regExpiry);
+  if (reg) return reg;
+  const candidates = [normDateStr(v.techExpiry), normDateStr(v.insExpiry)].filter(Boolean).sort();
+  return candidates[0] || null;
+}
+
+/* Normalize a v2-shaped vehicle to the exact model (drops unknown fields). */
+function normalizeVehicle(v) {
+  return {
+    id: v.id || uid(), name: v.name || '', make: v.make || '', model: v.model || '',
+    year: v.year || null, plate: v.plate || '', mileage: Number(v.mileage) || 0,
+    fuelType: FUEL_TYPES.indexOf(v.fuelType) !== -1 ? v.fuelType : null,
+    engine: v.engine || null, vin: v.vin || null,
+    regExpiry: migrateVehicleReg(v),
+    createdAt: v.createdAt || new Date().toISOString()
+  };
+}
+
 /* Normalize a v2-shaped object back to the exact model (drops unknown fields). */
 function normalizeV2(raw) {
   const d = defaultData();
@@ -428,14 +528,7 @@ function normalizeV2(raw) {
     theme: raw.settings && ['auto', 'light', 'dark'].indexOf(raw.settings.theme) !== -1 ? raw.settings.theme : 'auto'
   };
   d.activeVehicleId = typeof raw.activeVehicleId === 'string' ? raw.activeVehicleId : null;
-  d.vehicles = (Array.isArray(raw.vehicles) ? raw.vehicles : []).map(function (v) {
-    return {
-      id: v.id || uid(), name: v.name || '', make: v.make || '', model: v.model || '',
-      year: v.year || null, plate: v.plate || '', mileage: Number(v.mileage) || 0,
-      regExpiry: normDateStr(v.regExpiry), techExpiry: normDateStr(v.techExpiry), insExpiry: normDateStr(v.insExpiry),
-      createdAt: v.createdAt || new Date().toISOString()
-    };
-  });
+  d.vehicles = (Array.isArray(raw.vehicles) ? raw.vehicles : []).map(normalizeVehicle);
   d.fuel = (Array.isArray(raw.fuel) ? raw.fuel : []).map(function (f) {
     return {
       id: f.id || uid(), vehicleId: f.vehicleId || '', date: f.date || '',
@@ -469,14 +562,7 @@ function migrateToV2(raw) {
     theme: raw.settings && ['auto', 'light', 'dark'].indexOf(raw.settings.theme) !== -1 ? raw.settings.theme : 'auto'
   };
   d.activeVehicleId = typeof raw.activeVehicleId === 'string' ? raw.activeVehicleId : null;
-  d.vehicles = (Array.isArray(raw.vehicles) ? raw.vehicles : []).map(function (v) {
-    return {
-      id: v.id || uid(), name: v.name || '', make: v.make || '', model: v.model || '',
-      year: v.year || null, plate: v.plate || '', mileage: Number(v.mileage) || 0,
-      regExpiry: normDateStr(v.regExpiry), techExpiry: normDateStr(v.techExpiry), insExpiry: normDateStr(v.insExpiry),
-      createdAt: v.createdAt || new Date().toISOString()
-    };
-  });
+  d.vehicles = (Array.isArray(raw.vehicles) ? raw.vehicles : []).map(normalizeVehicle);
   d.fuel = (Array.isArray(raw.fuel) ? raw.fuel : []).map(function (f) {
     return {
       id: f.id || uid(), vehicleId: f.vehicleId || '', date: f.date || '',
@@ -760,32 +846,6 @@ function closeOverlay(id) {
 }
 
 // ==== VIEW: HOME ====
-/* 2 smaller deadline countdown chips (technical / insurance) under the two big
-   cards. regExpiry has its own big card since v2.2.0.
-   green >30 days, amber 7–30, red <7 or expired, gray "—" when not set. */
-function deadlineChipsHTML(vehicle) {
-  const defs = [
-    { key: 'techExpiry', label: t('tech') },
-    { key: 'insExpiry', label: t('insurance') }
-  ];
-  return defs.map(function (d) {
-    const iso = vehicle[d.key];
-    let cls = 'dl-chip--none';
-    let val = t('notSet');
-    if (iso) {
-      const days = daysBetween(todayISO(), iso);
-      if (days <= 0) { cls = 'dl-chip--danger'; val = t('expired'); }
-      else if (days > 30) { cls = 'dl-chip--ok'; val = t('daysLeft', { days: plainInt(days) }); }
-      else if (days >= 7) { cls = 'dl-chip--warn'; val = t('daysLeft', { days: plainInt(days) }); }
-      else { cls = 'dl-chip--danger'; val = t('daysLeft', { days: plainInt(days) }); }
-    }
-    return '<button type="button" class="dl-chip ' + cls + '" data-action="edit-vehicle" data-id="' + esc(vehicle.id) + '">' +
-      '<span class="dl-chip__label">' + esc(d.label) + '</span>' +
-      '<span class="dl-chip__value">' + esc(val) + '</span>' +
-      '</button>';
-  }).join('');
-}
-
 /* Big countdown card #1 — earliest upcoming service (km or days driver). */
 function nextServiceCardHTML(vehicle) {
   const ns = nextServiceFor(vehicle);
@@ -886,7 +946,6 @@ function renderHome() {
   const chips = byId('home-chips');
   const card = byId('home-vehicle');
   const countdowns = byId('home-countdowns');
-  const deadlines = byId('home-deadlines');
   const lastFuel = byId('home-last-fuel');
   const vehicles = state.data.vehicles;
 
@@ -895,7 +954,6 @@ function renderHome() {
     card.innerHTML = '<div class="empty-state"><p>' + esc(t('noVehicles')) + '</p>' +
       '<button type="button" class="btn btn--primary" data-action="add-vehicle">' + esc(t('addVehicle')) + '</button></div>';
     countdowns.innerHTML = '';
-    deadlines.innerHTML = '';
     lastFuel.innerHTML = '';
     const notesList = byId('notes-list');
     if (notesList) notesList.innerHTML = '';
@@ -918,7 +976,6 @@ function renderHome() {
     '<div class="vc-mileage">' + fmtKm(active.mileage) + '</div>';
 
   countdowns.innerHTML = nextServiceCardHTML(active) + regCardHTML(active);
-  deadlines.innerHTML = deadlineChipsHTML(active);
 
   const fuel = sortNewest(filterByVehicle(state.data.fuel));
   if (fuel.length) {
@@ -1263,52 +1320,134 @@ function renderSettings() {
   byId('set-version').textContent = 'v' + APP_VERSION + ' · ' + t('version');
 }
 
+/* ---- Vehicle form: dynamic selects (name type / brand / model / fuel) ---- */
+
+/* Model select: models of the selected brand + "Ostalo"; free text when the
+   brand has no list (unset / "Ostalo" / unknown brand). */
+function populateModelOptions(makeVal, selectedModel) {
+  const sel = byId('vh-model');
+  const models = makeVal && makeVal !== 'ostalo' ? BRAND_MODELS[makeVal] : null;
+  sel.innerHTML = '<option value="" data-i18n="notSet">—</option>';
+  if (models) {
+    models.forEach(function (m) {
+      const o = document.createElement('option');
+      o.value = m;
+      o.textContent = m;
+      sel.appendChild(o);
+    });
+    const other = document.createElement('option');
+    other.value = 'ostalo';
+    other.textContent = t('otherOption');
+    other.setAttribute('data-i18n', 'otherOption');
+    sel.appendChild(other);
+    sel.value = selectedModel || '';
+  } else {
+    sel.value = '';
+  }
+}
+
+/* Show/hide the "custom" inputs that follow each select. */
+function updateVehicleFormVisibility() {
+  byId('vh-name-custom-field').hidden = byId('vh-name').value !== 'custom';
+  byId('vh-make-custom-field').hidden = byId('vh-make').value !== 'ostalo';
+  const makeVal = byId('vh-make').value;
+  const hasModels = !!(makeVal && makeVal !== 'ostalo' && BRAND_MODELS[makeVal]);
+  byId('vh-model-field').hidden = !hasModels;
+  byId('vh-model-custom-field').hidden = hasModels && byId('vh-model').value !== 'ostalo';
+}
+
 function openVehicleOverlay(id) {
   state.editingId = id || null;
   byId('vehicle-title').textContent = id ? t('editVehicle') : t('newVehicle');
   byId('vh-delete').style.display = id ? '' : 'none';
   byId('vh-set-active').style.display = id ? '' : 'none';
+
+  // Make select: top Croatian-market brands + Ostalo.
+  byId('vh-make').innerHTML = '<option value="" data-i18n="notSet">—</option>' + BRANDS.map(function (b) {
+    return '<option value="' + (b === 'Ostalo' ? 'ostalo' : esc(b)) + '">' + esc(b) + '</option>';
+  }).join('');
+
+  let nameVal = '', nameCustom = '';
+  let makeVal = '', makeCustom = '';
+  let modelVal = '', modelCustom = '';
+  let fuelVal = '', year = '', plate = '', mileage = '', reg = '', engine = '', vin = '';
+
   if (id) {
     const v = getVehicle(id);
     if (!v) return;
-    byId('vh-name').value = v.name || '';
-    byId('vh-make').value = v.make || '';
-    byId('vh-model').value = v.model || '';
-    byId('vh-year').value = v.year || '';
-    byId('vh-plate').value = v.plate || '';
-    byId('vh-mileage').value = v.mileage != null ? v.mileage : '';
-    byId('vh-reg').value = v.regExpiry || '';
-    byId('vh-tech').value = v.techExpiry || '';
-    byId('vh-ins').value = v.insExpiry || '';
-  } else {
-    byId('vh-name').value = '';
-    byId('vh-make').value = '';
-    byId('vh-model').value = '';
-    byId('vh-year').value = '';
-    byId('vh-plate').value = '';
-    byId('vh-mileage').value = '';
-    byId('vh-reg').value = '';
-    byId('vh-tech').value = '';
-    byId('vh-ins').value = '';
+    // name stores the localized type label (or custom text) — reverse-map it.
+    for (let i = 0; i < VEHICLE_TYPES.length; i++) {
+      if (t('vehicleTypes.' + VEHICLE_TYPES[i]) === v.name) { nameVal = VEHICLE_TYPES[i]; break; }
+    }
+    if (!nameVal && v.name) { nameVal = 'custom'; nameCustom = v.name; }
+    if (v.make === 'Ostalo') makeVal = 'ostalo';
+    else if (v.make && BRANDS.indexOf(v.make) !== -1) makeVal = v.make;
+    else if (v.make) { makeVal = 'ostalo'; makeCustom = v.make; }
+    if (makeVal && makeVal !== 'ostalo' && BRAND_MODELS[makeVal]) {
+      const models = BRAND_MODELS[makeVal];
+      if (v.model && models.indexOf(v.model) !== -1) modelVal = v.model;
+      else if (v.model) { modelVal = 'ostalo'; modelCustom = v.model; }
+    } else {
+      modelCustom = v.model || ''; // free-text model when make is unset / Ostalo / unknown
+    }
+    fuelVal = v.fuelType || '';
+    year = v.year || ''; plate = v.plate || ''; mileage = v.mileage != null ? v.mileage : '';
+    reg = v.regExpiry || ''; engine = v.engine || ''; vin = v.vin || '';
   }
+
+  byId('vh-name').value = nameVal;
+  byId('vh-name-custom').value = nameCustom;
+  byId('vh-make').value = makeVal;
+  byId('vh-make-custom').value = makeCustom;
+  populateModelOptions(makeVal, modelVal);
+  byId('vh-model-custom').value = modelCustom;
+  byId('vh-year').value = year;
+  byId('vh-plate').value = plate;
+  byId('vh-fuel-type').value = fuelVal;
+  byId('vh-engine').value = engine;
+  byId('vh-vin').value = vin;
+  byId('vh-mileage').value = mileage;
+  byId('vh-reg').value = reg;
+  updateVehicleFormVisibility();
   openOverlay('overlay-vehicle');
 }
 
 function saveVehicle() {
-  const name = byId('vh-name').value.trim();
+  const nameSel = byId('vh-name');
+  let name = '';
+  if (nameSel.value === 'custom') name = byId('vh-name-custom').value.trim();
+  else if (nameSel.value) name = nameSel.selectedOptions[0].textContent.trim();
   if (!name) { toast(t('nameRequired')); return; }
+
+  const makeSel = byId('vh-make');
+  let make = '';
+  if (makeSel.value === 'ostalo') make = byId('vh-make-custom').value.trim();
+  else if (makeSel.value) make = makeSel.value; // brand labels are language-neutral
+
+  const modelSel = byId('vh-model');
+  const hasModels = !!(makeSel.value && makeSel.value !== 'ostalo' && BRAND_MODELS[makeSel.value]);
+  let model = '';
+  if (hasModels) {
+    if (modelSel.value === 'ostalo') model = byId('vh-model-custom').value.trim();
+    else model = modelSel.value; // '' or a language-neutral model label
+  } else {
+    model = byId('vh-model-custom').value.trim();
+  }
+
   const yearRaw = byId('vh-year').value;
+  const fuelVal = byId('vh-fuel-type').value;
   const rec = {
     id: state.editingId || uid(),
     name: name,
-    make: byId('vh-make').value.trim(),
-    model: byId('vh-model').value.trim(),
+    make: make,
+    model: model,
     year: yearRaw ? Number(yearRaw) : null,
     plate: byId('vh-plate').value.trim(),
+    fuelType: fuelVal || null,
+    engine: byId('vh-engine').value.trim() || null,
+    vin: byId('vh-vin').value.trim() || null,
     mileage: parseNum(byId('vh-mileage').value),
-    regExpiry: byId('vh-reg').value || null,
-    techExpiry: byId('vh-tech').value || null,
-    insExpiry: byId('vh-ins').value || null
+    regExpiry: byId('vh-reg').value || null
   };
   if (state.editingId) {
     const existing = getVehicle(state.editingId);
@@ -1469,6 +1608,12 @@ function bindEvents() {
   document.querySelector('#overlay-service .overlay__close').addEventListener('click', function () { closeOverlay('overlay-service'); });
 
   // Vehicle overlay
+  byId('vh-name').addEventListener('change', updateVehicleFormVisibility);
+  byId('vh-make').addEventListener('change', function () {
+    populateModelOptions(byId('vh-make').value, '');
+    updateVehicleFormVisibility();
+  });
+  byId('vh-model').addEventListener('change', updateVehicleFormVisibility);
   byId('vh-save').addEventListener('click', saveVehicle);
   byId('vh-cancel').addEventListener('click', function () { closeOverlay('overlay-vehicle'); });
   byId('vh-delete').addEventListener('click', function () { deleteVehicle(null); });

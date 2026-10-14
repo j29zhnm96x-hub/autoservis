@@ -25,9 +25,9 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="/styles.css?v=2.2.0">
-  <link rel="stylesheet" href="/fonts.css?v=2.2.0">
-  <script src="/app.js?v=2.2.0" defer></script>
+  <link rel="stylesheet" href="/styles.css?v=2.3.0">
+  <link rel="stylesheet" href="/fonts.css?v=2.3.0">
+  <script src="/app.js?v=2.3.0" defer></script>
 </head>
 <body>
   <header class="app-header">
@@ -41,7 +41,6 @@
       <div class="chip-row" id="home-chips"></div>
       <div class="card" id="home-vehicle"></div>
       <div class="countdown-grid" id="home-countdowns"></div>
-      <div class="deadline-row" id="home-deadlines"></div>
       <div class="card" id="home-last-fuel"></div>
       <div class="quick-actions">
         <button class="btn btn--primary" id="btn-quick-fuel" data-i18n="addFuel">Dodaj gorivo</button>
@@ -169,7 +168,7 @@
           <button class="btn btn--secondary btn--block" id="btn-check-update" data-i18n="checkForUpdate">Provjeri ažuriranje</button>
         </div>
       </div>
-      <div class="settings-version" id="set-version">v2.2.0</div>
+      <div class="settings-version" id="set-version">v2.3.0</div>
     </section>
 
   </main>
@@ -286,15 +285,39 @@
       <div class="overlay__body">
         <label class="field">
           <span class="field__label" data-i18n="name">Naziv</span>
-          <input type="text" id="vh-name">
+          <select id="vh-name">
+            <option value="" data-i18n="notSet">—</option>
+            <option value="personal" data-i18n="vehicleTypes.personal">Osobno vozilo</option>
+            <option value="utility" data-i18n="vehicleTypes.utility">Teretno vozilo</option>
+            <option value="van" data-i18n="vehicleTypes.van">Kombi</option>
+            <option value="truck" data-i18n="vehicleTypes.truck">Kamion</option>
+            <option value="motorcycle" data-i18n="vehicleTypes.motorcycle">Motor</option>
+            <option value="custom" data-i18n="vehicleTypes.custom">Drugo</option>
+          </select>
+        </label>
+        <label class="field" id="vh-name-custom-field" hidden>
+          <span class="field__label" data-i18n="customName">Naziv (po izboru)</span>
+          <input type="text" id="vh-name-custom">
         </label>
         <label class="field">
-          <span class="field__label" data-i18n="make">Marka</span>
-          <input type="text" id="vh-make">
+          <span class="field__label" data-i18n="brand">Marka</span>
+          <select id="vh-make">
+            <option value="" data-i18n="notSet">—</option>
+          </select>
         </label>
-        <label class="field">
+        <label class="field" id="vh-make-custom-field" hidden>
+          <span class="field__label" data-i18n="customMake">Marka (po izboru)</span>
+          <input type="text" id="vh-make-custom">
+        </label>
+        <label class="field" id="vh-model-field">
           <span class="field__label" data-i18n="model">Model</span>
-          <input type="text" id="vh-model">
+          <select id="vh-model">
+            <option value="" data-i18n="notSet">—</option>
+          </select>
+        </label>
+        <label class="field" id="vh-model-custom-field" hidden>
+          <span class="field__label" data-i18n="customModel">Model (po izboru)</span>
+          <input type="text" id="vh-model-custom">
         </label>
         <label class="field">
           <span class="field__label" data-i18n="year">Godina</span>
@@ -305,20 +328,32 @@
           <input type="text" id="vh-plate">
         </label>
         <label class="field">
+          <span class="field__label" data-i18n="fuelType">Gorivo</span>
+          <select id="vh-fuel-type">
+            <option value="" data-i18n="notSet">—</option>
+            <option value="petrol" data-i18n="fuelTypes.petrol">Benzin</option>
+            <option value="diesel" data-i18n="fuelTypes.diesel">Dizel</option>
+            <option value="hybrid" data-i18n="fuelTypes.hybrid">Hibrid</option>
+            <option value="electric" data-i18n="fuelTypes.electric">Električni</option>
+            <option value="lpg" data-i18n="fuelTypes.lpg">LPG</option>
+            <option value="other" data-i18n="fuelTypes.other">Drugo</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field__label" data-i18n="engine">Motor</span>
+          <input type="text" id="vh-engine" placeholder="1.6 HDi 90 KS">
+        </label>
+        <label class="field">
+          <span class="field__label" data-i18n="vin">VIN</span>
+          <input type="text" id="vh-vin" maxlength="17" autocapitalize="characters">
+        </label>
+        <label class="field">
           <span class="field__label" data-i18n="mileage">Kilometraža</span>
           <input type="number" id="vh-mileage" inputmode="numeric" min="0" step="1">
         </label>
         <label class="field">
           <span class="field__label" data-i18n="regExpiry">Registracija do</span>
           <input type="date" id="vh-reg">
-        </label>
-        <label class="field">
-          <span class="field__label" data-i18n="techExpiry">Tehnički pregled do</span>
-          <input type="date" id="vh-tech">
-        </label>
-        <label class="field">
-          <span class="field__label" data-i18n="insExpiry">Osiguranje do</span>
-          <input type="date" id="vh-ins">
         </label>
       </div>
       <div class="overlay__footer">

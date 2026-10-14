@@ -1,5 +1,5 @@
 /* ============================================================
-   AutoServis — styles.css v2.2.0 (SIMPLE)
+   AutoServis — styles.css v2.3.0 (SIMPLE)
    Warm palette + dark mode (from v0.1.2). Manrope. Radius 6/10/16.
    No gradients, no glassmorphism, no purple, no pill buttons.
    ============================================================ */
@@ -224,6 +224,10 @@ img { max-width: 100%; display: block; }
 
 /* ---- 6. Forms ---- */
 .field { display: block; margin-bottom: 14px; }
+
+/* .field's display:block would override the UA [hidden] rule — keep hidden
+   conditional fields (custom name/make/model inputs) truly hidden. */
+.field[hidden] { display: none; }
 
 .field__label {
   display: block;
